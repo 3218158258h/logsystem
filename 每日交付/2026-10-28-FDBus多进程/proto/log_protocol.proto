@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package ipc_log.protocol;
+
+//日志记录直接作为 kLogRequestCode 请求的根消息；退出排空由日志系统内部完成，不再有 flush 请求。
+message LogRecord {
+  //产生时间使用 Unix epoch 毫秒；server 以有限窗口排序，不承诺严格全序。
+  uint64 timestamp_ms = 1;
+  //数值与 C++ LogLevel 对齐：DEBUG=0、INFO=1、WARN=2、ERROR=3。
+  uint32 level = 2;
+  //由发送进程提供，server 同时以 FDBus session 校验实例与 PID。
+  uint32 pid = 3;
+  string module = 4;
+  string message = 5;
+  //worker 内严格递增；server 用于拒绝重复或过期记录。
+  uint64 sequence = 6;
+  //进程实例标识用于区分 PID 复用，并绑定当前 FDBus session。
+  uint64 process_instance = 7;
+}
+
+enum ReplyCode {
+  REPLY_INVALID = 0;
+  REPLY_ACCEPTED = 1;
+  REPLY_QUEUE_FULL = 2;
+  reserved 3, 4, 5;
+  REPLY_BAD_REQUEST = 6;
+}
+
+message LogReply {
+  //与记录 sequence 相同，便于诊断错配应答。
+  uint64 request_id = 1;
+  ReplyCode code = 2;
+  //只表示已进入服务端汇聚队列，不代表已经写出或持久化。
+  bool accepted = 3;
+  string message = 4;
+  reserved 5, 6, 7, 8;
+}
+
+enum LevelControlAction {
+  LEVEL_CONTROL_INVALID = 0;
+  LEVEL_CONTROL_GET = 1;
+  LEVEL_CONTROL_SET = 2;
+}
+
+enum LevelControlResult {
+  LEVEL_CONTROL_RESULT_INVALID = 0;
+  LEVEL_CONTROL_OK = 1;
+  LEVEL_CONTROL_NOT_READY = 2;
+  LEVEL_CONTROL_TARGET_MISMATCH = 3;
+  LEVEL_CONTROL_INVALID_LEVEL = 4;
+  LEVEL_CONTROL_STOPPING = 5;
+  LEVEL_CONTROL_BAD_REQUEST = 6;
+}
+
+//GET 可将目标实例留空，用当前 FDBus 会话解析 worker 身份。
+message LevelControlRequest {
+  //session 定向的控制请求；GET 可用 target_process_instance=0 由当前 session 解析身份。
+  uint64 request_id = 1;
+  LevelControlAction action = 2;
+  uint64 target_process_instance = 3;
+  uint32 requested_level = 4;
+}
+
+//NOT_READY 仍可返回 PID 和实例标识，但 level_known 必须为 false。
+message LevelControlReply {
+  //request_id 必须匹配请求；只有 LEVEL_CONTROL_OK 且 level_known 才算查询/设置确认。
+  uint64 request_id = 1;
+  LevelControlResult result = 2;
+  uint64 process_instance = 3;
+  uint32 pid = 4;
+  bool level_known = 5;
+  uint32 actual_level = 6;
+  string message = 7;
+}
