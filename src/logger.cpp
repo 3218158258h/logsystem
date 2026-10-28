@@ -4,7 +4,7 @@
 
 namespace ipc_log {
 
-//Logger 在业务线程构造轻量记录并调用目标入队；输出线程归目标所有。
+//Logger 在业务线程构造轻量记录并调用目标入队
 Logger::Logger(const std::shared_ptr<ILogTarget> &target, const LoggerConfig &config)
     : target_(target)
     , threshold_(static_cast<uint32_t>(config.threshold))
@@ -13,12 +13,13 @@ Logger::Logger(const std::shared_ptr<ILogTarget> &target, const LoggerConfig &co
 {
 }
 
+//设置过滤等级
 void Logger::setLevel(LogLevel level)
 {
     //阈值是原子快照，正在并发 log 的线程立即按新旧任一完整等级判断。
     threshold_.store(static_cast<uint32_t>(level), std::memory_order_relaxed);
 }
-
+//获取过滤等级
 LogLevel Logger::level() const
 {
     return static_cast<LogLevel>(threshold_.load(std::memory_order_relaxed));
@@ -27,7 +28,7 @@ LogLevel Logger::level() const
 bool Logger::log(LogLevel log_level, const std::string &module,
                  const std::string &message)
 {
-    //先做等级过滤，关闭的等级不会构造记录或触达目标队列。
+    //先做等级过滤
     if (static_cast<uint32_t>(log_level) < threshold_.load(std::memory_order_relaxed))
     {
         filtered_.fetch_add(1, std::memory_order_relaxed);
@@ -69,6 +70,7 @@ bool Logger::warn(const std::string &module, const std::string &message)
 bool Logger::error(const std::string &module, const std::string &message)
 { return log(LogLevel::Error, module, message); }
 
+//统计该进程的所有计数
 LoggerStats Logger::stats() const
 {
     //统计项是各业务线程可并发更新的累计值，不代表某个原子时刻的一致快照。

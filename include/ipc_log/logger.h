@@ -16,7 +16,7 @@ struct LoggerConfig//logger配置
     LoggerConfig() : threshold(LogLevel::Info) {}
 };
 
-struct LoggerStats
+struct LoggerStats//worker端统计计数
 {
     uint64_t filtered;
     uint64_t truncated;

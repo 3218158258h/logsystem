@@ -50,6 +50,8 @@ public:
     //停止接收并等待本地队列发出；服务端最终输出由 LogServer 退出时的排空负责。
     ShutdownResult shutdown();
     TargetStats stats() const;
+    //本实例号用于服务端 list/get-level/set-level 定位；同一进程内保持不变。
+    uint64_t processInstance() const;
 
     //绑定 worker 的 Logger；目标只持 weak_ptr，避免 Logger 与目标形成强引用环。
     bool attachLogger(const std::shared_ptr<Logger> &logger);

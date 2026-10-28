@@ -19,16 +19,17 @@ public:
         : capacity_(capacity), size_(0), closed_(false)
     {}
 
+    //存入
     bool tryPush(T value)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (closed_ || size_ >= capacity_) return false;
         queue_.push_back(std::move(value));
         ++size_;
-        ready_.notify_one();
+        ready_.notify_one();//条件变量通知
         return true;
     }
-
+    //取出（无超时）
     bool waitPop(T &value)
     {
         //仅队列关闭且已排空时返回 false；关闭不会丢弃已经入队的项。
@@ -38,8 +39,8 @@ public:
         popFront(value);
         return true;
     }
-
-    template <typename Rep, typename Period>
+    //取出（有超时）
+    template <typename Rep, typename Period>//时间模板
     bool waitPopFor(T &value, const std::chrono::duration<Rep, Period> &duration)
     {
         //false 代表超时或关闭后队列为空；超时由消费者用于推进重排空闲释放。

@@ -304,6 +304,8 @@ public:
         return result;
     }
 
+    uint64_t processInstance() const { return process_instance_; }
+
     TargetStats stats() const
     {
         TargetStats result;
@@ -523,6 +525,7 @@ FdbusLogTarget::~FdbusLogTarget() { shutdown(); }
 bool FdbusLogTarget::submit(LogRecord record) { return impl_->submit(record); }
 ShutdownResult FdbusLogTarget::shutdown() { return impl_->shutdown(); }
 TargetStats FdbusLogTarget::stats() const { return impl_->stats(); }
+uint64_t FdbusLogTarget::processInstance() const { return impl_->processInstance(); }
 bool FdbusLogTarget::attachLogger(const std::shared_ptr<Logger> &logger)
 { return impl_->attachLogger(logger); }
 

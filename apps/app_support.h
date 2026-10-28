@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <map>
 #include <memory>
-#include <signal.h>
 #include <string>
 #include <stdexcept>
 
@@ -81,7 +80,7 @@ private:
 
 inline ipc_log::LogLevel parseLevel(const std::string &text)
 {
-    //演示入口接受大小写两种拼法，不接受缩写或隐式默认等级。
+    //控制命令、示例输入和服务端启动参数都接受大小写两种拼法，不接受缩写。
     if (text == "DEBUG" || text == "debug") return ipc_log::LogLevel::Debug;
     if (text == "INFO" || text == "info") return ipc_log::LogLevel::Info;
     if (text == "WARN" || text == "warn") return ipc_log::LogLevel::Warn;
@@ -92,17 +91,12 @@ inline ipc_log::LogLevel parseLevel(const std::string &text)
 inline ipc_log::RotatingFileConfig fileConfig(const Arguments &args,
                                                const std::string &default_path)
 {
-    //文件路径、切割阈值和备份数共用同一组演示参数。
+    //文件路径、切割阈值和备份数共用同一组服务端参数。
     ipc_log::RotatingFileConfig config;
     config.path = args.get("file", default_path);
     config.max_bytes = static_cast<std::size_t>(args.number("max-bytes", config.max_bytes));
     config.backup_count = static_cast<std::size_t>(args.number("backups", config.backup_count));
     return config;
-}
-
-inline std::shared_ptr<ipc_log::ILogSink> makeConsoleSink()
-{
-    return std::shared_ptr<ipc_log::ILogSink>(new ipc_log::ConsoleSink());
 }
 
 inline std::shared_ptr<ipc_log::ILogSink> makeFileSink(const Arguments &args,
