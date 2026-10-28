@@ -209,7 +209,6 @@ int main(int argc, char **argv)
         //配置汇聚器
         ipc_log::AggregatorConfig aggregator_config;
         aggregator_config.queue_capacity = static_cast<std::size_t>(args.number("queue", 8192));
-        aggregator_config.control_reserve = server_config.max_pending_flushes;
         //配置重排缓冲区
         aggregator_config.reorder.capacity = static_cast<std::size_t>(args.number("reorder-capacity", 4096));
         aggregator_config.reorder.window_ms = args.number("window-ms", 50);
@@ -241,11 +240,11 @@ int main(int argc, char **argv)
         readCommands(server, *console_sink, control_timeout);
 
         logger.info("log_server", "shutdown requested; draining worker and output queues");
-        //先停止接收并完成待处理 flush，再关闭汇聚线程和输出。
+        //先停止接收，再关闭汇聚队列；消费线程会把剩余记录写完并刷新 Sink。
         server.shutdown(std::chrono::seconds(10));
         logger.info("log_server", "FDBus endpoint stopped");
-        const ipc_log::FlushResult flush_result = aggregator.shutdown(std::chrono::seconds(10));
-        const ipc_log::TargetStats stats = aggregator.stats();
+        const ipc_log::ShutdownResult result = aggregator.shutdown();
+        const ipc_log::TargetStats stats = result.stats;
         std::ostringstream summary;
         summary << "log_server stopped accepted=" << stats.accepted
                 << " dropped=" << stats.dropped << " rejected=" << stats.rejected
@@ -253,9 +252,9 @@ int main(int argc, char **argv)
                 << " late=" << stats.late_records
                 << " forced_releases=" << stats.forced_releases;
         printCommandLine(*console_sink, summary.str());
-        if (!flush_result.ok())
-            printCommandLine(*console_sink, "log_server final flush: " + flush_result.message);
-        return stats.write_errors == 0 && flush_result.ok() ? 0 : 2;
+        if (!result.ok())
+            printCommandLine(*console_sink, "log_server shutdown: " + result.message);
+        return result.ok() ? 0 : 2;
     }
     catch (const std::exception &error)
     {

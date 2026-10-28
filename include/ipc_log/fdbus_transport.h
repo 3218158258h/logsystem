@@ -31,9 +31,12 @@ struct FdbusTargetConfig
     std::string service_name;
     std::size_t queue_capacity;
     std::chrono::milliseconds request_timeout;
+    std::chrono::milliseconds shutdown_timeout;
     //队列是 worker 的数据容量；请求超时由唯一发送线程逐条应用。
+    //shutdown_timeout 限制退出时等待本地队列发出的时间，超时后剩余记录计为丢弃。
     FdbusTargetConfig()
-        : service_name("ipc_log_service"), queue_capacity(2048), request_timeout(2000) {}
+        : service_name("ipc_log_service"), queue_capacity(2048), request_timeout(2000)
+        , shutdown_timeout(10000) {}
 };
 
 class FdbusLogTarget : public ILogTarget
@@ -44,9 +47,8 @@ public:
     ~FdbusLogTarget();
     //成功仅表示进入 worker FIFO；后台发送线程负责等待 FDBus 应答和统计失败。
     bool submit(LogRecord record);
-    //等待服务端 flush 屏障；超时可能发生在服务端已开始处理之后。
-    FlushResult flush(std::chrono::milliseconds timeout);
-    FlushResult shutdown(std::chrono::milliseconds timeout);
+    //停止接收并等待本地队列发出；服务端最终输出由 LogServer 退出时的排空负责。
+    ShutdownResult shutdown();
     TargetStats stats() const;
 
     //绑定 worker 的 Logger；目标只持 weak_ptr，避免 Logger 与目标形成强引用环。
@@ -92,11 +94,10 @@ struct LogServerConfig
 {
     std::string service_name;
     std::size_t max_payload_bytes;
-    std::size_t max_pending_flushes;
     std::size_t max_worker_instances;
-    //限制单包大小、保留的异步 flush 请求数和同时可登记的 worker 会话数。
+    //限制单包大小和同时可登记的 worker 会话数。
     LogServerConfig()
-        : service_name("ipc_log_service"), max_payload_bytes(8192), max_pending_flushes(128)
+        : service_name("ipc_log_service"), max_payload_bytes(8192)
         , max_worker_instances(1024) {}
 };
 
@@ -108,7 +109,7 @@ public:
     ~LogServer();
     //绑定服务成功返回 true；失败返回 false，构造时的非法配置会抛异常。
     bool start();
-    //等待在途控制与 flush 回调并销毁 endpoint；输出排空由 aggregator.shutdown 完成。
+    //等待在途控制回调并销毁 endpoint；日志排空由 aggregator.shutdown 完成。
     void shutdown(std::chrono::milliseconds timeout);
     //返回当前在线会话快照并异步查询各 worker 的进程实例与等级。
     std::vector<WorkerInfo> listWorkers(std::chrono::milliseconds timeout);

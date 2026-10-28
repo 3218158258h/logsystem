@@ -3,7 +3,6 @@
 #include "ipc_log/local_log_target.h"
 #include "ipc_log/logger.h"
 
-#include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -51,15 +50,15 @@ int main(int argc, char **argv)
         for (std::vector<std::thread>::iterator it = threads.begin(); it != threads.end(); ++it)
             it->join();
 
-        //等级过滤发生在记录入队前；shutdown 在停止接收后等待后台汇聚线程完成输出。
+        //等级过滤发生在记录入队前；shutdown 停止接收后由消费线程排空并刷新输出。
         logger.setLevel(ipc_log::LogLevel::Debug);
         logger.debug("local-demo", "runtime threshold changed to DEBUG");
-        const ipc_log::FlushResult flushed = target->shutdown(std::chrono::seconds(10));
-        const ipc_log::TargetStats stats = target->stats();
-        std::cout << "local demo flush=" << (flushed.ok() ? "ok" : flushed.message)
+        const ipc_log::ShutdownResult result = target->shutdown();
+        const ipc_log::TargetStats stats = result.stats;
+        std::cout << "local demo shutdown=" << (result.ok() ? "drained" : result.message)
                   << " accepted=" << stats.accepted << " dropped=" << stats.dropped
                   << " write_errors=" << stats.write_errors << '\n';
-        return flushed.ok() ? 0 : 2;
+        return result.ok() ? 0 : 2;
     }
     catch (const std::exception &error)
     {

@@ -25,16 +25,6 @@ namespace {
 
 using namespace ipc::fdbus;
 
-struct PendingReplies
-{
-    //异步 flush 保留 FDBus 请求引用；shutdown 等此计数归零后才销毁 context。
-    std::mutex mutex;
-    std::condition_variable ready;
-    std::size_t count;
-    bool cancelled;
-    explicit PendingReplies() : count(0), cancelled(false) {}
-};
-
 } //namespace
 
 class LogServer::Impl
@@ -106,12 +96,11 @@ public:
 
     Impl(LogAggregator &aggregator, const LogServerConfig &config)
         : aggregator_(aggregator), config_(config), server_(0), runtime_acquired_(false)
-        , running_(false), stopped_(false), pending_(new PendingReplies())
-        , next_control_request_id_(1)
+        , running_(false), stopped_(false), next_control_request_id_(1)
     {
         if (config_.service_name.empty() || config_.max_payload_bytes == 0 ||
-            config_.max_payload_bytes > 1024 * 1024 || config_.max_pending_flushes == 0 ||
-            config_.max_pending_flushes > 4096 || config_.max_worker_instances == 0 ||
+            config_.max_payload_bytes > 1024 * 1024 ||
+            config_.max_worker_instances == 0 ||
             config_.max_worker_instances > 65536)
             throw std::invalid_argument("log server configuration is invalid");
     }
@@ -151,7 +140,7 @@ public:
 
     void shutdown(std::chrono::milliseconds timeout)
     {
-        //停止接收、等控制与 flush 回调后再销毁 endpoint/context；输出排空交给 aggregator.shutdown。
+        //停止接收并等控制回调后再销毁 endpoint/context；日志排空交给 aggregator.shutdown。
         std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mutex_);
         if (stopped_) return;
         const std::chrono::steady_clock::time_point deadline =
@@ -167,12 +156,6 @@ public:
                 [this]() { return pending_controls_.empty(); });
         }
         cancelPendingControls();
-        {
-            std::unique_lock<std::mutex> lock(pending_->mutex);
-            pending_->ready.wait_until(lock, deadline,
-                [this]() { return pending_->count == 0; });
-            if (pending_->count != 0) pending_->cancelled = true;
-        }
         if (server_)
         {
             server_->prepareDestroy();
@@ -181,14 +164,7 @@ public:
         }
         if (runtime_acquired_)
         {
-            bool pending_drained = false;
-            {
-                std::lock_guard<std::mutex> lock(pending_->mutex);
-                pending_drained = pending_->count == 0;
-            }
-            if (pending_drained)
-                detail::releaseFdbusRuntime();
-            //保留 FDBus context，避免超时屏障的延迟回复引用被提前销毁。
+            detail::releaseFdbusRuntime();
             runtime_acquired_ = false;
         }
         stopped_ = true;
@@ -699,7 +675,7 @@ private:
 
     void onInvoke(ipc::fdbus::CBaseJob::Ptr &msg_ref)
     {
-        //FDBus 回调只做长度/协议路由和快速入队；flush 的最终应答由屏障回调发送。
+        //FDBus 回调只做长度检查和快速入队；日志消息的根类型就是 LogRecord。
         if (!running_.load(std::memory_order_acquire))
         {
             ipc::fdbus::CFdbMessage::status(msg_ref, FDB_ST_INVALID_ID,
@@ -719,44 +695,26 @@ private:
             replyError(msg_ref, 0, protocol::REPLY_BAD_REQUEST, "request payload exceeds limit");
             return;
         }
-        protocol::LogRequest request;
-        ipc::fdbus::CFdbProtoMsgParser parser(request);
+        protocol::LogRecord incoming;
+        ipc::fdbus::CFdbProtoMsgParser parser(incoming);
         if (!message->deserialize(parser))
         {
             ipc::fdbus::CFdbMessage::status(msg_ref, FDB_ST_MSG_DECODE_FAIL,
-                                             "cannot decode IPC log request");
+                                             "cannot decode IPC log record");
             return;
         }
-        if (request.kind() == protocol::REQUEST_LOG_RECORD && request.has_record())
-        {
-            handleRecord(msg_ref, request);
-            return;
-        }
-        if (request.kind() == protocol::REQUEST_FLUSH && request.has_flush())
-        {
-            handleFlush(msg_ref, request);
-            return;
-        }
-        replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST,
-                   "request kind and payload do not match");
+        handleRecord(msg_ref, incoming);
     }
 
 
     void handleRecord(ipc::fdbus::CBaseJob::Ptr &msg_ref,
-                      const protocol::LogRequest &request)
+                      const protocol::LogRecord &incoming)
     {
         //校验请求与会话身份后入共享汇聚队列；ACK 只表示入队成功。
-        const protocol::LogRecord &incoming = request.record();
         std::string error;
         if (!validateRecord(incoming, error))
         {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST, error);
-            return;
-        }
-        if (request.request_id() != incoming.sequence())
-        {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST,
-                       "log request_id must match record sequence");
+            replyError(msg_ref, incoming.sequence(), protocol::REPLY_BAD_REQUEST, error);
             return;
         }
         ipc::fdbus::CFdbMessage *message =
@@ -791,7 +749,7 @@ private:
         }
         if (!identity_error.empty())
         {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST,
+            replyError(msg_ref, incoming.sequence(), protocol::REPLY_BAD_REQUEST,
                        identity_error);
             return;
         }
@@ -806,115 +764,17 @@ private:
         record.process_instance = incoming.process_instance();
         if (!aggregator_.submit(record))
         {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_QUEUE_FULL,
+            replyError(msg_ref, incoming.sequence(), protocol::REPLY_QUEUE_FULL,
                        "server aggregation queue is full or stopping");
             return;
         }
         protocol::LogReply response;
-        response.set_request_id(request.request_id());
+        response.set_request_id(incoming.sequence());
         response.set_code(protocol::REPLY_ACCEPTED);
         response.set_accepted(true);
-        //ACCEPTED 只确认进入汇聚队列，输出刷新由后续 flush 屏障确认。
+        //ACCEPTED 只确认进入汇聚队列；最终写出由服务端退出排空完成。
         response.set_message("accepted into the bounded aggregation queue");
         reply(msg_ref, response);
-    }
-
-    bool reservePending()
-    {
-        //先预留异步应答额度，限制持有的 FDBus 请求引用数量。
-        std::lock_guard<std::mutex> lock(pending_->mutex);
-        if (pending_->count >= config_.max_pending_flushes) return false;
-        ++pending_->count;
-        return true;
-    }
-
-    void releasePending()
-    {
-        //无论屏障成功、失败还是队列拒绝，都释放此前预留的异步应答名额。
-        std::lock_guard<std::mutex> lock(pending_->mutex);
-        if (pending_->count) --pending_->count;
-        pending_->ready.notify_all();
-    }
-
-    void handleFlush(ipc::fdbus::CBaseJob::Ptr &msg_ref,
-                     const protocol::LogRequest &request)
-    {
-        //核对 worker 屏障目标序号，再保留请求对象直到此前记录已写出并刷新 Sink。
-        const protocol::FlushRequest &flush = request.flush();
-        if (flush.request_id() == 0 || flush.request_id() != request.request_id() ||
-            flush.process_instance() == 0)
-        {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST,
-                       "flush request identity is invalid");
-            return;
-        }
-        std::string identity_error;
-        {
-            std::lock_guard<std::mutex> lock(process_mutex_);
-            ipc::fdbus::CFdbMessage *message =
-                ipc::fdbus::castToMessage<ipc::fdbus::CFdbMessage *>(msg_ref);
-            const FdbSessionId_t sid = message ? message->session() : FDB_INVALID_ID;
-            std::map<FdbSessionId_t, ProcessState>::iterator it = sessions_.find(sid);
-            if (it == sessions_.end())
-                identity_error = "flush sender session is not online";
-            else if (it->second.info.process_instance != 0 &&
-                     it->second.info.process_instance != flush.process_instance())
-                identity_error = "flush process instance does not match its session";
-            else if (flush.target_sequence() > it->second.last_seen_sequence)
-                identity_error = "flush sequence has not been accepted by the server";
-            else if (it->second.info.process_instance == 0)
-            {
-                //无日志 worker 也可用已验证的 FDBus session 建立实例身份并正常确认空屏障。
-                it->second.info.process_instance = flush.process_instance();
-            }
-        }
-        if (!identity_error.empty())
-        {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_BAD_REQUEST, identity_error);
-            return;
-        }
-        if (!reservePending())
-        {
-            replyError(msg_ref, request.request_id(), protocol::REPLY_QUEUE_FULL,
-                       "too many pending flush requests");
-            return;
-        }
-
-        const std::shared_ptr<PendingReplies> pending = pending_;
-        const uint64_t request_id = request.request_id();
-        const std::shared_ptr<ipc::fdbus::CBaseJob::Ptr> retained(
-            new ipc::fdbus::CBaseJob::Ptr(msg_ref));
-        //请求引用随屏障保留，直到此前日志写入并刷新两个 Sink。
-        const bool queued = aggregator_.flushAsync(
-            [pending, retained, request_id](const FlushResult &result)
-            {
-                protocol::LogReply response;
-                response.set_request_id(request_id);
-                const bool barrier_completed = result.status == FlushStatus::Success ||
-                                               result.status == FlushStatus::Partial;
-                response.set_accepted(barrier_completed);
-                response.set_code(barrier_completed ? protocol::REPLY_FLUSHED :
-                                                      protocol::REPLY_FLUSH_FAILED);
-                response.set_message(result.message);
-                response.set_dropped(result.dropped);
-                response.set_rejected(result.rejected);
-                response.set_uncertain(result.uncertain);
-                response.set_write_errors(result.write_errors);
-                std::lock_guard<std::mutex> lock(pending->mutex);
-                if (!pending->cancelled)
-                {
-                    ipc::fdbus::CFdbProtoMsgBuilder builder(response);
-                    ipc::fdbus::CFdbMessage::reply(*retained, builder);
-                }
-                if (pending->count) --pending->count;
-                pending->ready.notify_all();
-            });
-        if (!queued)
-        {
-            releasePending();
-            replyError(msg_ref, request.request_id(), protocol::REPLY_QUEUE_FULL,
-                       "server flush control reserve is full");
-        }
     }
 
     LogAggregator &aggregator_;
@@ -923,7 +783,6 @@ private:
     bool runtime_acquired_;
     std::atomic<bool> running_;
     bool stopped_;
-    std::shared_ptr<PendingReplies> pending_;
     uint64_t next_control_request_id_;
     std::mutex lifecycle_mutex_;
     std::mutex process_mutex_;

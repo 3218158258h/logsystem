@@ -80,7 +80,7 @@ void failRequest(RequestState &state, const std::string &error)
     state.error = error;
 }
 
-//FDBus reply 回调只校验并保存应答；等待线程负责把协议结果映射成 FlushResult。
+//FDBus reply 回调只校验并保存应答；等待线程负责把协议结果映射成计数。
 void completeRequest(const std::shared_ptr<RequestState> &state,
                      CBaseJob::Ptr &message_ref, CFdbBaseObject *)
 {
@@ -127,17 +127,6 @@ void completeRequest(const std::shared_ptr<RequestState> &state,
 class FdbusLogTarget::Impl
 {
 public:
-    struct Item
-    {
-        //记录和 flush 共用 FIFO；Flush 项携带此前已接收入队的序号屏障。
-        enum Kind { Record, Flush } kind;
-        LogRecord record;
-        uint64_t request_id;
-        uint64_t target_sequence;
-        std::shared_ptr<RequestState> state;
-        Item() : kind(Record), request_id(0), target_sequence(0) {}
-    };
-
     class Client : public CBaseClient
     {
     public:
@@ -161,11 +150,11 @@ public:
             owner_->onControlInvoke(msg_ref);
         }
 
-        bool send(const protocol::LogRequest &request,
+        bool send(const protocol::LogRecord &record,
                   const std::shared_ptr<RequestState> &state,
                   int timeout_ms)
         {
-            CFdbProtoMsgBuilder builder(request);
+            CFdbProtoMsgBuilder builder(record);
             return invoke(kLogRequestCode, builder,
                           [state](CBaseJob::Ptr &message_ref, CFdbBaseObject *object)
                           { completeRequest(state, message_ref, object); },
@@ -177,18 +166,19 @@ public:
     };
 
     explicit Impl(const FdbusTargetConfig &config)
-        : config_(config), queue_(config.queue_capacity, 1)
+        : config_(config), queue_(config.queue_capacity)
         , client_(0), accepting_(true), stopping_(false), online_(false)
-        , next_sequence_(1), next_request_id_(1), accepted_(0), dropped_(0)
-        , rejected_(0), uncertain_(0)
+        , next_sequence_(1), accepted_(0), dropped_(0), rejected_(0), uncertain_(0)
         , pid_(currentProcessId()), process_instance_(createProcessInstanceId(pid_))
-        , runtime_acquired_(false), stopped_(false)
+        , runtime_acquired_(false), stopped_(false), sender_done_(false)
     {
         //先验证边界，再启动 context、client 和唯一发送线程；构造失败时逐项回滚。
         if (config_.service_name.empty() || config_.queue_capacity == 0 ||
             config_.queue_capacity > 65536 ||
             config_.request_timeout.count() <= 0 ||
-            config_.request_timeout.count() > 60000)
+            config_.request_timeout.count() > 60000 ||
+            config_.shutdown_timeout.count() <= 0 ||
+            config_.shutdown_timeout.count() > 60000)
             throw std::invalid_argument("FDBus target configuration is invalid");
         runtime_acquired_ = detail::acquireFdbusRuntime();
         if (!runtime_acquired_) throw std::runtime_error("unable to start FDBus context");
@@ -215,7 +205,7 @@ public:
         }
     }
 
-    ~Impl() { shutdown(std::chrono::seconds(5)); }
+    ~Impl() { shutdown(); }
 
     bool attachLogger(const std::shared_ptr<Logger> &logger)
     {
@@ -245,10 +235,7 @@ public:
         record.pid = pid_;
         record.process_instance = process_instance_;
         record.sequence = next_sequence_;
-        Item item;
-        item.kind = Item::Record;
-        item.record = std::move(record);
-        if (!queue_.tryPush(std::move(item)))
+        if (!queue_.tryPush(std::move(record)))
         {
             dropped_.fetch_add(1, std::memory_order_relaxed);
             return false;
@@ -258,89 +245,43 @@ public:
         return true;
     }
 
-    FlushResult flush(std::chrono::milliseconds timeout)
+    ShutdownResult shutdown()
     {
-        //同步 flush 只等待队列中的屏障应答；普通 Logger 调用不经过此等待路径。
-        if (timeout.count() <= 0)
-        {
-            FlushResult result;
-            result.status = FlushStatus::Timeout;
-            result.message = "flush timeout must be positive";
-            fillStats(result);
-            return result;
-        }
-        const std::chrono::steady_clock::time_point deadline =
-            std::chrono::steady_clock::now() + timeout;
-        std::unique_lock<std::timed_mutex> serial(flush_mutex_, std::defer_lock);
-        if (!serial.try_lock_until(deadline))
-        {
-            FlushResult result;
-            result.status = FlushStatus::Timeout;
-            result.message = "timed out waiting for another remote flush";
-            fillStats(result);
-            return result;
-        }
-        const std::shared_ptr<RequestState> state(new RequestState());
-        {
-            std::lock_guard<std::mutex> lock(submit_mutex_);
-            Item item;
-            item.kind = Item::Flush;
-            item.request_id = next_request_id_++;
-            item.target_sequence = next_sequence_ - 1;
-            item.state = state;
-            if (!queue_.tryPushControl(std::move(item)))
-            {
-                FlushResult result;
-                result.status = FlushStatus::QueueFull;
-                result.message = "flush control reserve is full or target is stopped";
-                fillStats(result);
-                return result;
-            }
-        }
-        std::unique_lock<std::mutex> lock(state->mutex);
-        if (!state->ready.wait_until(lock, deadline, [state]() { return state->done; }))
-        {
-            FlushResult result;
-            result.status = FlushStatus::Timeout;
-            result.message = "remote flush timed out; its result may be unknown";
-            result.uncertain = uncertain_.load(std::memory_order_relaxed) +
-                               (state->submitted ? 1 : 0);
-            result.dropped = dropped_.load(std::memory_order_relaxed);
-            result.rejected = rejected_.load(std::memory_order_relaxed);
-            return result;
-        }
-        FlushResult result = toFlushResult(*state);
-        result.dropped += dropped_.load(std::memory_order_relaxed);
-        result.rejected += rejected_.load(std::memory_order_relaxed);
-        result.uncertain += uncertain_.load(std::memory_order_relaxed);
-        if (result.status == FlushStatus::Success &&
-            (result.dropped || result.rejected || result.uncertain || result.write_errors))
-        {
-            result.status = FlushStatus::Partial;
-            result.message = "flush completed with dropped, rejected, uncertain, or failed records";
-        }
-        return result;
-    }
-
-    FlushResult shutdown(std::chrono::milliseconds timeout)
-    {
-        //拒绝新记录、尽力等待屏障、唤醒发送线程，再销毁 client 和共享 context。
+        //拒绝新记录、等待发送线程排空本地队列，再销毁 client 和共享 context。
         std::lock_guard<std::mutex> shutdown_lock(shutdown_mutex_);
+        ShutdownResult result;
         if (stopped_)
         {
-            FlushResult result;
-            result.status = FlushStatus::Stopped;
+            result.already_stopped = true;
             result.message = "log target is already stopped";
+            result.stats = stats();
+            return result;
+        }
+        if (std::this_thread::get_id() == sender_.get_id())
+        {
+            result.drained = false;
+            result.message = "shutdown cannot run on the sender thread";
+            result.stats = stats();
             return result;
         }
         {
             std::lock_guard<std::mutex> lock(submit_mutex_);
             accepting_.store(false, std::memory_order_release);
         }
-        const FlushResult result = flush(timeout);
-        stopping_.store(true, std::memory_order_release);
-        online_ready_.notify_all();
         queue_.close();
+        //关闭只阻止新项；发送线程会把关闭前已入队的记录逐条发出。
+        {
+            std::unique_lock<std::mutex> lock(sender_mutex_);
+            sender_done_cv_.wait_for(lock, config_.shutdown_timeout,
+                                     [this]() { return sender_done_; });
+            result.drained = sender_done_;
+        }
+        if (!result.drained)
+        {
+            //超时后强制停止：发送线程丢弃剩余记录并退出，避免离线服务拖住进程。
+            stopping_.store(true, std::memory_order_release);
+            online_ready_.notify_all();
+        }
         if (sender_.joinable()) sender_.join();
         if (client_)
         {
@@ -355,6 +296,11 @@ public:
             runtime_acquired_ = false;
         }
         stopped_ = true;
+        result.stats = stats();
+        if (!result.drained)
+            result.message = "local send queue did not drain before the shutdown timeout";
+        else if (result.stats.dropped || result.stats.rejected || result.stats.uncertain)
+            result.message = "shutdown completed with dropped, rejected, or uncertain records";
         return result;
     }
 
@@ -466,12 +412,12 @@ private:
         return online_ && !stopping_.load(std::memory_order_acquire);
     }
 
-    bool sendRequest(const protocol::LogRequest &request,
+    bool sendRequest(const protocol::LogRecord &record,
                      const std::shared_ptr<RequestState> &state)
     {
         {
             std::lock_guard<std::mutex> lock(state->mutex);
-            state->expected_request_id = request.request_id();
+            state->expected_request_id = record.sequence();
         }
         //只有发送线程等待 FDBus 应答，Logger 调用在入队后立即返回。
         if (!waitUntilOnline()) return false;
@@ -479,7 +425,7 @@ private:
             std::lock_guard<std::mutex> lock(state->mutex);
             state->submitted = true;
         }
-        const bool queued = client_->send(request, state,
+        const bool queued = client_->send(record, state,
             static_cast<int>(config_.request_timeout.count()));
         if (!queued)
         {
@@ -501,134 +447,63 @@ private:
         return true;
     }
 
-    static FlushResult toFlushResult(const RequestState &state)
-    {
-        //传输失败与服务端应用级拒绝分开映射，避免把未确认写盘说成成功。
-        FlushResult result;
-        if (state.transport_error)
-        {
-            result.status = FlushStatus::TransportError;
-            result.message = state.error;
-            result.uncertain = state.uncertain ? 1 : 0;
-            return result;
-        }
-        result.dropped = state.reply.dropped();
-        result.rejected = state.reply.rejected();
-        result.uncertain = state.reply.uncertain();
-        result.write_errors = state.reply.write_errors();
-        if (state.reply.code() == protocol::REPLY_FLUSHED && state.reply.accepted())
-            result.status = FlushStatus::Success;
-        else
-        {
-            result.status = (state.reply.code() == protocol::REPLY_FLUSH_FAILED &&
-                             state.reply.write_errors() != 0) ?
-                            FlushStatus::WriteError : FlushStatus::TransportError;
-            result.message = state.reply.message();
-        }
-        return result;
-    }
-
-    void fillStats(FlushResult &result) const
-    {
-        //队列侧累计计数附加到快速失败的 flush 结果中。
-        result.dropped = dropped_.load(std::memory_order_relaxed);
-        result.rejected = rejected_.load(std::memory_order_relaxed);
-        result.uncertain = uncertain_.load(std::memory_order_relaxed);
-    }
-
     void run()
     {
-        Item item;
+        LogRecord record;
         //单消费者按 FIFO 逐条 invoke 并等待应答，保证每个 worker 最多一个在途请求。
-        while (queue_.waitPop(item))
+        while (queue_.waitPop(record))
         {
             if (stopping_.load(std::memory_order_acquire))
             {
-                if (item.kind == Item::Record) dropped_.fetch_add(1, std::memory_order_relaxed);
-                else if (item.state)
-                {
-                    std::lock_guard<std::mutex> lock(item.state->mutex);
-                    item.state->transport_error = true;
-                    item.state->error = "target stopped before flush was sent";
-                    item.state->done = true;
-                    item.state->ready.notify_all();
-                }
+                dropped_.fetch_add(1, std::memory_order_relaxed);
                 continue;
             }
 
-            //按 Item 构造协议消息；发送端单线程保持每个 worker 最多一个在途请求。
-            protocol::LogRequest request;
-            request.set_request_id(item.kind == Item::Record ? item.record.sequence : item.request_id);
-            if (item.kind == Item::Record)
-            {
-                request.set_kind(protocol::REQUEST_LOG_RECORD);
-                protocol::LogRecord *record = request.mutable_record();
-                record->set_timestamp_ms(item.record.timestamp_ms);
-                record->set_level(static_cast<uint32_t>(item.record.level));
-                record->set_pid(item.record.pid);
-                record->set_module(item.record.module);
-                record->set_message(item.record.message);
-                record->set_sequence(item.record.sequence);
-                record->set_process_instance(item.record.process_instance);
-            }
-            else
-            {
-                request.set_kind(protocol::REQUEST_FLUSH);
-                protocol::FlushRequest *flush = request.mutable_flush();
-                flush->set_request_id(item.request_id);
-                flush->set_process_instance(process_instance_);
-                flush->set_target_sequence(item.target_sequence);
-            }
+            protocol::LogRecord message;
+            message.set_timestamp_ms(record.timestamp_ms);
+            message.set_level(static_cast<uint32_t>(record.level));
+            message.set_pid(record.pid);
+            message.set_module(record.module);
+            message.set_message(record.message);
+            message.set_sequence(record.sequence);
+            message.set_process_instance(record.process_instance);
 
-            const std::shared_ptr<RequestState> state = item.state ?
-                item.state : std::shared_ptr<RequestState>(new RequestState());
+            const std::shared_ptr<RequestState> state(new RequestState());
             //记录应答区分未发送丢弃、传输结果未知和服务端明确拒绝。
-            const bool sent = sendRequest(request, state);
-            if (item.kind == Item::Record)
-            {
-                std::lock_guard<std::mutex> lock(state->mutex);
-                if (!sent)
-                    dropped_.fetch_add(1, std::memory_order_relaxed);
-                else if (state->transport_error)
-                    uncertain_.fetch_add(1, std::memory_order_relaxed);
-                else if (!state->reply.accepted() ||
-                         state->reply.code() != protocol::REPLY_ACCEPTED)
-                    rejected_.fetch_add(1, std::memory_order_relaxed);
-            }
-            else
-            {
-                if (item.state)
-                {
-                    std::lock_guard<std::mutex> lock(item.state->mutex);
-                    if (!sent)
-                    {
-                        item.state->transport_error = true;
-                        item.state->uncertain = item.state->submitted;
-                        item.state->error = "FDBus service is offline during shutdown";
-                        item.state->done = true;
-                        item.state->ready.notify_all();
-                    }
-                }
-            }
+            const bool sent = sendRequest(message, state);
+            std::lock_guard<std::mutex> lock(state->mutex);
+            if (!sent)
+                dropped_.fetch_add(1, std::memory_order_relaxed);
+            else if (state->transport_error)
+                uncertain_.fetch_add(1, std::memory_order_relaxed);
+            else if (!state->reply.accepted() ||
+                     state->reply.code() != protocol::REPLY_ACCEPTED)
+                rejected_.fetch_add(1, std::memory_order_relaxed);
         }
+        //通知 shutdown：本地队列已经取空，发送线程即将退出。
+        {
+            std::lock_guard<std::mutex> lock(sender_mutex_);
+            sender_done_ = true;
+        }
+        sender_done_cv_.notify_all();
     }
 
     FdbusTargetConfig config_;
-    BoundedQueue<Item> queue_;
+    BoundedQueue<LogRecord> queue_;
     Client *client_;
     std::thread sender_;
     std::mutex logger_mutex_;
     std::weak_ptr<Logger> logger_;
     mutable std::mutex submit_mutex_;
-    std::timed_mutex flush_mutex_;
     std::mutex shutdown_mutex_;
     std::mutex online_mutex_;
     std::condition_variable online_ready_;
+    std::mutex sender_mutex_;
+    std::condition_variable sender_done_cv_;
     bool online_;
     std::atomic<bool> accepting_;
     std::atomic<bool> stopping_;
     uint64_t next_sequence_;
-    uint64_t next_request_id_;
     std::atomic<uint64_t> accepted_;
     std::atomic<uint64_t> dropped_;
     std::atomic<uint64_t> rejected_;
@@ -637,18 +512,16 @@ private:
     const uint64_t process_instance_;
     bool runtime_acquired_;
     bool stopped_;
+    bool sender_done_;
 };
 
 FdbusLogTarget::FdbusLogTarget(const FdbusTargetConfig &config)
     : impl_(new Impl(config))
 {}
 
-FdbusLogTarget::~FdbusLogTarget() { shutdown(std::chrono::seconds(5)); }
+FdbusLogTarget::~FdbusLogTarget() { shutdown(); }
 bool FdbusLogTarget::submit(LogRecord record) { return impl_->submit(record); }
-FlushResult FdbusLogTarget::flush(std::chrono::milliseconds timeout)
-{ return impl_->flush(timeout); }
-FlushResult FdbusLogTarget::shutdown(std::chrono::milliseconds timeout)
-{ return impl_->shutdown(timeout); }
+ShutdownResult FdbusLogTarget::shutdown() { return impl_->shutdown(); }
 TargetStats FdbusLogTarget::stats() const { return impl_->stats(); }
 bool FdbusLogTarget::attachLogger(const std::shared_ptr<Logger> &logger)
 { return impl_->attachLogger(logger); }

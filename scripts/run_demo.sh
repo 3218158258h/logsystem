@@ -71,7 +71,7 @@ for pid in "${worker_pids[@]}"; do
 done
 worker_pids=()
 
-#所有 worker 收尾后请求 server flush。
+#所有 worker 收尾后通知 server 正常退出；服务端在退出路径排空汇聚队列并刷新输出。
 if [[ -n "$server_pid" ]]; then
     kill -INT "$server_pid" 2>/dev/null || true
     wait "$server_pid" 2>/dev/null || true

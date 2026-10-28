@@ -10,7 +10,6 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -20,9 +19,8 @@ namespace ipc_log {
 struct AggregatorConfig//队列配置
 {
     std::size_t queue_capacity;
-    std::size_t control_reserve;//留给flush
-    ReorderConfig reorder;//重连缓冲区配置
-    AggregatorConfig() : queue_capacity(8192), control_reserve(128) {}
+    ReorderConfig reorder;//重排缓冲区配置
+    AggregatorConfig() : queue_capacity(8192) {}
 };
 
 //
@@ -30,37 +28,23 @@ struct AggregatorConfig//队列配置
 class LogAggregator : public ILogTarget
 {
 public:
-    typedef std::function<void(const FlushResult &)> FlushCallback;
-
     LogAggregator(const std::shared_ptr<ILogSink> &console_sink,
                   const std::shared_ptr<ILogSink> &file_sink,
                   const AggregatorConfig &config = AggregatorConfig());
     ~LogAggregator();
 
-    //尝试入有界记录队列；false 表示关闭/校验失败/队列满，不等待 Sink I/O。
+    //尝试入有界记录队列；false 表示关闭/队列满，不等待 Sink I/O。
     bool submit(LogRecord record);
-    //屏障与记录共用 FIFO；回调在 Sink 刷新结束后运行，不代表 fsync。
-    //回调运行在消费线程上，不能在回调里同步调用 flush/shutdown。
-    bool flushAsync(FlushCallback callback);
-    FlushResult flush(std::chrono::milliseconds timeout);
-    //停止接收后排入最后屏障，关闭队列并等待消费者退出；返回收尾 flush 的结果。
-    FlushResult shutdown(std::chrono::milliseconds timeout);
+    //停止接收后关闭队列并等待消费者排空；消费者的退出路径会刷新两个 Sink。
+    ShutdownResult shutdown();
     TargetStats stats() const;
 
 private:
-    struct Item
-    {
-        enum Kind { Record, Barrier } kind;
-        LogRecord record;
-        FlushCallback callback;
-        Item() : kind(Record) {}
-    };
-
     void run();
-    FlushResult flushSinks();
+    void flushSinks();
     void outputReady(bool force);
 
-    BoundedQueue<Item> queue_;
+    BoundedQueue<LogRecord> queue_;
     std::shared_ptr<ILogSink> console_sink_;
     std::shared_ptr<ILogSink> file_sink_;
     ReorderBuffer reorder_;
@@ -75,7 +59,6 @@ private:
     std::atomic<uint64_t> write_errors_;
     //同步并发生产者的序号分配与入队，并和关闭时停止接收互斥。
     mutable std::mutex submit_mutex_;
-    std::timed_mutex flush_mutex_;
     std::mutex shutdown_mutex_;
 };
 

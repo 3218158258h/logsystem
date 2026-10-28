@@ -10,33 +10,21 @@
 
 namespace ipc_log {
 
-//数据容量与控制预留分开计数，让 flush 屏障在满载时仍按 FIFO 排队。
+//简单的有界 FIFO：关闭只阻止新项，消费者仍会取完关闭前已入队的项。
 template <typename T>
 class BoundedQueue
 {
 public:
-    BoundedQueue(std::size_t capacity, std::size_t control_reserve)
-        : capacity_(capacity), control_reserve_(control_reserve)
-        , data_size_(0), control_size_(0), closed_(false)
+    explicit BoundedQueue(std::size_t capacity)
+        : capacity_(capacity), size_(0), closed_(false)
     {}
 
     bool tryPush(T value)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (closed_ || data_size_ >= capacity_) return false;
-        queue_.push_back(Entry(std::move(value), false));
-        ++data_size_;
-        ready_.notify_one();
-        return true;
-    }
-
-    bool tryPushControl(T value)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (closed_ || control_size_ >= control_reserve_) return false;
-        //控制项复用同一 FIFO，因此不会越过之前的日志；预留容量可让满载时仍提交 flush。
-        queue_.push_back(Entry(std::move(value), true));
-        ++control_size_;
+        if (closed_ || size_ >= capacity_) return false;
+        queue_.push_back(std::move(value));
+        ++size_;
         ready_.notify_one();
         return true;
     }
@@ -79,30 +67,19 @@ public:
     }
 
 private:
-    struct Entry
-    {
-        T value;
-        bool control;
-        Entry(T v, bool c) : value(std::move(v)), control(c) {}
-    };
-
     void popFront(T &value)
     {
-        const bool control = queue_.front().control;
-        value = std::move(queue_.front().value);
+        value = std::move(queue_.front());
         queue_.pop_front();
-        if (control) --control_size_;
-        else --data_size_;
+        --size_;
     }
 
     const std::size_t capacity_;
-    const std::size_t control_reserve_;
     //等待消费者时会释放此锁，生产者只在队列操作期间持锁。
     mutable std::mutex mutex_;
     std::condition_variable ready_;
-    std::deque<Entry> queue_;
-    std::size_t data_size_;
-    std::size_t control_size_;
+    std::deque<T> queue_;
+    std::size_t size_;
     bool closed_;
 };
 

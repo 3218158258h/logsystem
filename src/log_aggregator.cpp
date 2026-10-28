@@ -1,7 +1,6 @@
 #include "ipc_log/log_aggregator.h"
 #include "ipc_log/log_formatter.h"
 
-#include <condition_variable>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -13,7 +12,7 @@ namespace ipc_log {
 LogAggregator::LogAggregator(const std::shared_ptr<ILogSink> &console_sink,
                              const std::shared_ptr<ILogSink> &file_sink,
                              const AggregatorConfig &config)
-    : queue_(config.queue_capacity, config.control_reserve)
+    : queue_(config.queue_capacity)
     , console_sink_(console_sink)
     , file_sink_(file_sink)
     , reorder_(config.reorder)
@@ -22,16 +21,15 @@ LogAggregator::LogAggregator(const std::shared_ptr<ILogSink> &console_sink,
     , accepted_(0), dropped_(0), rejected_(0), write_errors_(0)
 {
     if (config.queue_capacity == 0 || config.queue_capacity > 65536 ||
-        config.control_reserve == 0 || config.control_reserve > 4096 ||
         !console_sink_ || !file_sink_)
         throw std::invalid_argument(
-            "aggregator requires bounded nonzero queue/control capacities and both sinks");
+            "aggregator requires a bounded nonzero queue and both sinks");
     thread_ = std::thread(&LogAggregator::run, this);
 }
 
 LogAggregator::~LogAggregator()
 {
-    shutdown(std::chrono::seconds(5));
+    shutdown();
 }
 
 bool LogAggregator::submit(LogRecord record)
@@ -48,14 +46,11 @@ bool LogAggregator::submit(LogRecord record)
         rejected_.fetch_add(1, std::memory_order_relaxed);
         return false;
     }
-    //来自 worker 的序号已由发送端分配；本地记录由此队列在入队成功时分配。
-    Item item;
-    item.kind = Item::Record;
+    //来自 worker 的序号已由发送端分配；本地记录由汇聚队列在入队成功时分配。
     const bool assign_sequence = record.sequence == 0;
     if (assign_sequence)
         record.sequence = next_sequence_;
-    item.record = std::move(record);
-    if (!queue_.tryPush(std::move(item)))
+    if (!queue_.tryPush(std::move(record)))
     {
         dropped_.fetch_add(1, std::memory_order_relaxed);
         return false;
@@ -65,98 +60,39 @@ bool LogAggregator::submit(LogRecord record)
     return true;
 }
 
-bool LogAggregator::flushAsync(FlushCallback callback)
+ShutdownResult LogAggregator::shutdown()
 {
-    //异步屏障占独立预留容量；队列关闭后拒绝新屏障，但不等待消费线程。
-    if (stopping_.load(std::memory_order_acquire)) return false;
-    Item item;
-    item.kind = Item::Barrier;
-    item.callback = std::move(callback);
-    return queue_.tryPushControl(std::move(item));
-}
-
-FlushResult LogAggregator::flush(std::chrono::milliseconds timeout)
-{
-    if (timeout.count() <= 0)
-    {
-        FlushResult result;
-        result.status = FlushStatus::Timeout;
-        result.message = "flush timeout must be positive";
-        return result;
-    }
-    const auto failedFlush = [this](FlushStatus status, const std::string &message) -> FlushResult
-    {
-        FlushResult result;
-        result.status = status;
-        result.message = message;
-        result.dropped = dropped_.load(std::memory_order_relaxed);
-        result.rejected = rejected_.load(std::memory_order_relaxed);
-        result.write_errors = write_errors_.load(std::memory_order_relaxed);
-        return result;
-    };
-    //屏障由消费线程执行；在消费线程上同步等待会等自己。
-    if (std::this_thread::get_id() == thread_.get_id())
-        return failedFlush(FlushStatus::Stopped, "flush cannot run on the consumer thread");
-    const std::chrono::steady_clock::time_point deadline =
-        std::chrono::steady_clock::now() + timeout;
-    std::unique_lock<std::timed_mutex> serial(flush_mutex_, std::defer_lock);
-    if (!serial.try_lock_until(deadline))
-        return failedFlush(FlushStatus::Timeout, "timed out waiting for another flush operation");
-    //同步接口只等待后台线程执行同一条异步屏障，并与其他同步 flush 串行化。
-    struct WaitState
-    {
-        std::mutex mutex;
-        std::condition_variable ready;
-        bool done;
-        FlushResult result;
-        WaitState() : done(false) {}
-    };
-    const std::shared_ptr<WaitState> state(new WaitState());
-    if (!flushAsync([state](const FlushResult &result)
-    {
-        std::lock_guard<std::mutex> lock(state->mutex);
-        state->result = result;
-        state->done = true;
-        state->ready.notify_all();
-    }))
-        return failedFlush(FlushStatus::QueueFull, "flush control reserve is full or target is stopping");
-
-    std::unique_lock<std::mutex> lock(state->mutex);
-    if (!state->ready.wait_until(lock, deadline, [state]() { return state->done; }))
-    {
-        return failedFlush(FlushStatus::Timeout,
-                           "flush timed out; the queued barrier may still complete");
-    }
-    return state->result;
-}
-
-FlushResult LogAggregator::shutdown(std::chrono::milliseconds timeout)
-{
-    //回调运行在消费线程；在消费线程上调用会 join 自己，直接拒绝。
+    //消费线程不能 join 自己；这种调用直接报告未完成，由外部线程再次收尾。
     if (std::this_thread::get_id() == thread_.get_id())
     {
-        FlushResult result;
-        result.status = FlushStatus::Stopped;
+        ShutdownResult result;
+        result.drained = false;
         result.message = "shutdown cannot run on the consumer thread";
         return result;
     }
     std::lock_guard<std::mutex> shutdown_lock(shutdown_mutex_);
     if (stopping_.load(std::memory_order_acquire))
     {
-        FlushResult result;
-        result.status = FlushStatus::Stopped;
+        ShutdownResult result;
+        result.already_stopped = true;
         result.message = "aggregator is already stopped";
+        result.stats = stats();
         return result;
     }
-    //先停止新增记录，再排入屏障；即使屏障超时也关闭队列并等待消费者完成退出路径。
+    //先停止新增记录，再关闭队列；消费者会把关闭前已入队的记录全部处理完。
     {
         std::lock_guard<std::mutex> submit_lock(submit_mutex_);
         accepting_.store(false, std::memory_order_release);
     }
-    const FlushResult result = flush(timeout);
     stopping_.store(true, std::memory_order_release);
     queue_.close();
     if (thread_.joinable()) thread_.join();
+
+    //消费者退出前已强制释放重排窗口并刷新两个 Sink，这里只汇总结果。
+    ShutdownResult result;
+    result.stats = stats();
+    if (result.stats.write_errors != 0)
+        result.message = "one or more sink writes failed during final drain";
     return result;
 }
 
@@ -174,50 +110,22 @@ TargetStats LogAggregator::stats() const
 
 void LogAggregator::run()
 {
-    Item item;
+    LogRecord record;
     while (true)
     {
         //有限等待让低流量日志也能在空闲释放期限后输出，而不要求新记录到达。
-        if (!queue_.waitPopFor(item, idle_release_))
+        if (!queue_.waitPopFor(record, idle_release_))
         {
             outputReady(false);
             if (queue_.closed()) break;
             continue;
         }
-        if (item.kind == Item::Record)
-        {
-            reorder_.add(item.record);
-            outputReady(false);
-        }
-        else
-        {
-            //屏障到达时先强制排空重排窗口，再刷新两个 Sink，最后才应答调用方。
-            outputReady(true);
-            FlushResult result = flushSinks();
-            if (result.status == FlushStatus::Success &&
-                write_errors_.load(std::memory_order_relaxed) != 0)
-            {
-                result.status = FlushStatus::WriteError;
-                result.message = "one or more sink writes failed before this flush barrier";
-            }
-            result.dropped = dropped_.load(std::memory_order_relaxed);
-            result.rejected = rejected_.load(std::memory_order_relaxed);
-            result.write_errors = write_errors_.load(std::memory_order_relaxed);
-            if (result.status == FlushStatus::Success &&
-                (result.dropped != 0 || result.rejected != 0))
-            {
-                result.status = FlushStatus::Partial;
-                result.message = "flush completed with dropped or rejected records";
-            }
-            if (item.callback)
-            {
-                try { item.callback(result); }
-                catch (...) { rejected_.fetch_add(1, std::memory_order_relaxed); }
-            }
-        }
+        reorder_.add(record);
+        outputReady(false);
     }
+    //关闭后先强制释放有限窗口中的剩余记录，再刷新两个 Sink 的流缓冲。
     outputReady(true);
-    (void)flushSinks();
+    flushSinks();
 }
 
 void LogAggregator::outputReady(bool force)
@@ -236,26 +144,13 @@ void LogAggregator::outputReady(bool force)
     }
 }
 
-FlushResult LogAggregator::flushSinks()
+void LogAggregator::flushSinks()
 {
     //两个 Sink 都尝试 flush；分别累计错误，避免一个 Sink 失败跳过另一个。
-    FlushResult result;
     const SinkResult console_result = console_sink_->flush();
     const SinkResult file_result = file_sink_->flush();
-    if (!console_result.ok)
-    {
-        result.status = FlushStatus::WriteError;
-        result.message = console_result.message;
-        write_errors_.fetch_add(1, std::memory_order_relaxed);
-    }
-    if (!file_result.ok)
-    {
-        result.status = FlushStatus::WriteError;
-        if (!result.message.empty()) result.message += "; ";
-        result.message += file_result.message;
-        write_errors_.fetch_add(1, std::memory_order_relaxed);
-    }
-    return result;
+    if (!console_result.ok) write_errors_.fetch_add(1, std::memory_order_relaxed);
+    if (!file_result.ok) write_errors_.fetch_add(1, std::memory_order_relaxed);
 }
 
 } //namespace ipc_log

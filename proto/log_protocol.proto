@@ -2,12 +2,7 @@ syntax = "proto3";
 
 package ipc_log.protocol;
 
-enum RequestKind {
-  REQUEST_INVALID = 0;
-  REQUEST_LOG_RECORD = 1;
-  REQUEST_FLUSH = 2;
-}
-
+//日志记录直接作为 kLogRequestCode 请求的根消息；退出排空由日志系统内部完成，不再有 flush 请求。
 message LogRecord {
   //产生时间使用 Unix epoch 毫秒；server 以有限窗口排序，不承诺严格全序。
   uint64 timestamp_ms = 1;
@@ -17,49 +12,28 @@ message LogRecord {
   uint32 pid = 3;
   string module = 4;
   string message = 5;
-  //worker 内严格递增；同时作为日志请求 ID，server 用于拒绝重放。
+  //worker 内严格递增；server 用于拒绝重复或过期记录。
   uint64 sequence = 6;
   //进程实例标识用于区分 PID 复用，并绑定当前 FDBus session。
   uint64 process_instance = 7;
-}
-
-message FlushRequest {
-  //flush 请求 ID 与外层 LogRequest.request_id 必须相等。
-  uint64 request_id = 1;
-  uint64 process_instance = 2;
-  //仅当不大于 server 已接收序号时才接受该屏障。
-  uint64 target_sequence = 3;
-}
-
-message LogRequest {
-  //kind 决定 record 或 flush 载荷；两种载荷必须与 kind 匹配。
-  RequestKind kind = 1;
-  //日志请求等于 record.sequence；flush 请求等于 flush.request_id。
-  uint64 request_id = 2;
-  LogRecord record = 3;
-  FlushRequest flush = 4;
 }
 
 enum ReplyCode {
   REPLY_INVALID = 0;
   REPLY_ACCEPTED = 1;
   REPLY_QUEUE_FULL = 2;
-  REPLY_FLUSHED = 4;
-  REPLY_FLUSH_FAILED = 5;
+  reserved 3, 4, 5;
   REPLY_BAD_REQUEST = 6;
 }
 
 message LogReply {
-  //REPLY_ACCEPTED 仅代表入汇聚队列；REPLY_FLUSHED 代表屏障前输出并 flush Sink 完成。
+  //与记录 sequence 相同，便于诊断错配应答。
   uint64 request_id = 1;
   ReplyCode code = 2;
-  //accepted 对日志代表入队；对 flush 代表屏障已完成，即使结果为 Partial。
+  //只表示已进入服务端汇聚队列，不代表已经写出或持久化。
   bool accepted = 3;
   string message = 4;
-  uint64 dropped = 5;
-  uint64 rejected = 6;
-  uint64 uncertain = 7;
-  uint64 write_errors = 8;
+  reserved 5, 6, 7, 8;
 }
 
 enum LevelControlAction {
