@@ -118,6 +118,7 @@
 
 > 建档日期：2026-10-27。依据 [全量审查报告](docs/code-review-2026-10-27.md)；实施任务见 [主计划第 11 节](docs/implementation-plan.md)。
 > 2026-10-27 已修改 F6/F7/F8 及结构精简 1–6（详见下方“本轮已修改”一节），状态为**已修改待验证**；F1/F2/F3/F4/F5 仍未修改，保持“待修复/待复现”。
+> 2026-10-28 按用户决定移除跨进程 flush 协议，F7/F8 的原有实现被新的退出排空设计取代，详见文末“2026-10-28 移除 flush 协议”。
 > 后续保留发现、修改、验证各自真实日期。审查结论可被新证据修正，但不能先写“修复通过”再补证据。
 
 | 编号 | 问题与当前状态 | 已有证据 | 后续须补充 | 素材阶段 |
@@ -128,8 +129,8 @@
 | F4 / R13 | 服务未就绪就宣告 listening；已定位、**待修复** | SDK svc 注册异步，应用无实际绑定确认；未实测重复服务名 | SDK 状态依据、实现与启动成功/失败用例 | FDBus 联调 |
 | F5 / R14 | 可写不可读文件的原有大小漏算；已定位、**待修复** | `rotating_file_sink.cpp` 仍用 `ifstream`+`tellg`，失败即当 0；本轮未改 | stat 处理、非 root 权限与轮转边界复验 | 日志核心 |
 | F6 / R15 | 无符号参数接受负数；**已修改待验证**（2026-10-27） | 已加 `parseUnsignedDecimal`，拒绝空串、负号、溢出和尾随字符；语法检查通过 | Ubuntu 运行 `--count -1` 等边界用例 | 日志核心/入口参数 |
-| F7 / R16 | 应用显式 flush 后 shutdown 再 flush；**已修改待验证**（2026-10-27） | `shutdown` 统一返回 `FlushResult`，应用入口删除重复 flush | Ubuntu 验证正常/超时/写错误退出与退出码 | 本地部分归核心，worker 部分归多进程 |
-| F8 / R17 | 异步回调同步等待/关闭的重入风险；**已修改待验证**（2026-10-27） | `flush`/`shutdown` 在消费线程调用时直接返回 `Stopped`，头文件写明回调线程约束 | 回调内调用不死锁、外部仍可正常关闭 | 日志核心/接口约束 |
+| F7 / R16 | 应用显式 flush 后 shutdown 再 flush；**2026-10-28 改为移除 flush 协议**，由退出排空取代 | 2026-10-27 曾统一为单次 `shutdown`；2026-10-28 删除 `flush`/`flushAsync` 与跨进程 flush 消息 | Ubuntu 验证正常退出排空、超时与退出码 | 本地部分归核心，worker 部分归多进程 |
+| F8 / R17 | 异步回调同步等待/关闭的重入风险；**2026-10-28 随 flush 回调删除而收敛**，仅保留 `shutdown` 重入保护 | 消费线程调用 `shutdown` 直接返回 `already_stopped`/拒绝；无 flush 回调可重入 | Ubuntu 验证消费线程内调用 shutdown 不死锁、外部仍可关闭 | 日志核心/接口约束 |
 
 ### 2026-10-27 本轮已修改：结构精简 1–6 与 F6/F7/F8
 
@@ -196,3 +197,22 @@
 - 校准结果：共享队列、共享重排缓存和退出屏障可以保留，说明跨窗口乱序边界即可；不增加题目未要求的进程级 flush 或周期 flush。
 - 验证边界：依据题目原文与当前静态调用链，不代表 Ubuntu 运行验收。重复退出 flush 属于 F7；2026-10-27 已统一为单次 `shutdown`，状态为已修改待验证。
 - 可摘选素材：结合原始需求和实际调用位置，纠正 AI 对使用场景的扩大解释，保留满足工期的简化架构，把修复重点转向真实可靠性缺陷。
+
+### 2026-10-28 移除 flush 协议，改为日志系统退出时内部排空
+
+- 日期：2026-10-28；分类：需求理解与接口简化；由用户明确决定“直接移除 flush 机制”，不是在原有屏障上继续打补丁。
+- 需求依据：题目只要求“退出时 flush”，没有要求业务代码主动发起 flush，也没有要求运行期周期 flush。原设计把“退出时输出完”实现成了跨进程 flush 请求/应答，引入了业务侧可影响日志系统的入口。
+- 原先偏差：worker 生产结束后显式 flush，`LogAggregator` 提供 `flushAsync`/`flush` 和队列控制预留，server 维护 pending flush 与回复占位。这些机制解决的是“业务要求日志系统立刻冲刷”，与题目要求不一致。
+- 修改前后：
+  - 协议：删除 `FlushRequest`、`LogRequest`、`RequestKind`；`kLogRequestCode` 直接以 `LogRecord` 为根消息；`LogReply` 只保留 `request_id/code/accepted/message`；旧字段号用 `reserved`。
+  - 接口：`FlushResult`/`FlushStatus` 改为 `ShutdownResult`；`ILogTarget` 只保留 `submit`、`shutdown`、`stats`；聚合器删除 `flush`/`flushAsync` 和 `flush_mutex_`。
+  - 队列：删除控制预留与 `tryPushControl`，`BoundedQueue` 只服务日志记录。
+  - worker：发送线程在 `shutdown` 时排空本地队列，最多等待 `shutdown_timeout`（默认 10s）；超时则强制停止，未发出的记录计入 `dropped`，不再向服务端发 flush 屏障。
+  - server：删除 pending flush 表、控制预留和 flush 处理分支；`onInvoke` 只反序列化 `LogRecord` 并校验入队。
+  - 退出：`LogAggregator::shutdown` 停止接收 → 关闭队列 → 消费线程取完关闭前积压 → 强制释放重排窗口 → 刷新两个 Sink → join；`LogServer::shutdown` 只做端点清理。
+  - 应用与脚本：`local_log_demo`、`log_worker`、`log_server` 只调用一次 `shutdown`，按 `ShutdownResult` 决定退出码；README 与 `run_demo.sh` 注释改为退出排空描述。
+- 保留项：ACK 仍只表示服务端入队；worker 在途请求仍有超时与 `uncertain` 计数；Sink 仍在退出时刷新；`shutdown` 仍有消费线程重入保护。
+- 语义边界：退出排空只覆盖已经进入对应本地队列/汇聚队列的记录；server 退出时仍在 FDBus 传输层、socket 或 worker 本地队列中的记录不在保证范围内；`kill -9`、崩溃和掉电仍可能丢失内存中的日志；stream 刷新不等于 `fsync`。
+- 验证依据：`grep` 未发现 `FlushResult|flushAsync|max_pending_flushes|control_reserve|tryPushControl|REQUEST_FLUSH|FlushRequest|REPLY_FLUSHED|protocol::LogRequest` 残留；核心源码与 `local_log_demo.cpp` 的 `g++ -std=c++11 -fsyntax-only` 退出码 0；同口径自研源码约 3,470 行降至 3,135 行。`log_server.cpp`、`fdbus_transport.cpp`、`log_server_main.cpp` 未在 Windows 编译，未执行 Ubuntu 构建、双 worker 演示或退出排空复验。
+- 状态：已修改待验证。F7 的“重复 flush”问题因接口删除而消失，F8 的 flush 回调重入面随之收敛；两者都不能据此写成运行验证通过。
+- 可摘选素材：按题目“退出时输出完”的原意，删掉业务可触发的跨进程 flush 协议，把收尾统一为一次内部排空；减少协议分支、控制预留和 pending 状态，同时保留 ACK、超时、丢弃计数与资源释放。
