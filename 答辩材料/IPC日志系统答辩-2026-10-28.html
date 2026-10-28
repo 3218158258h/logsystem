@@ -1088,8 +1088,8 @@ set-level &lt;process_instance&gt; WARN</code></pre>
             </div>
             <div class="deck-card accent-orange">
                 <div class="eyebrow">FORMATTING + SINKS</div><div class="card-heading">统一格式 · 单行输出</div>
-                <div class="log-sample">[1786680123456][WARN][12345][NetManager][Connection established to 192.168.1.1:8080]</div>
-                <p>毫秒为 Unix epoch 整数；正文换行 / 制表符转义，保证一条记录一行。</p>
+                <div class="log-sample">[2026-08-12 10:30:45.123][WARN][PID:12345][NetManager][Connection established to 192.168.1.1:8080]</div>
+                <p>时间戳为可读毫秒格式（本地时间）；正文换行 / 制表符转义，保证一条记录一行。</p>
                 <div class="sink-pair"><div><strong>ERROR→stderr · 其余→stdout</strong><small>ConsoleSink</small></div><div><strong>按大小轮转</strong><small>RotatingFileSink</small></div></div>
             </div>
         </div>
