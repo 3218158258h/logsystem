@@ -1,0 +1,709 @@
+//=====================================================================================
+//                   makefile to build fdbus in aosp source tree                      |
+//=====================================================================================
+
+//=====================================================================================
+//                           build libfdbus.so                                  |
+//=====================================================================================
+
+SRC_FILES = [
+    "fdbus/CBaseClient.cpp",
+    "fdbus/CFdbBaseObject.cpp",
+    "fdbus/CFdbMessage.cpp",
+    "fdbus/CFdbSimpleSerializer.cpp",
+    "fdbus/CBaseEndpoint.cpp",
+    "fdbus/CFdbCJsonMsgBuilder.cpp",
+    "fdbus/CFdbSessionContainer.cpp",
+    "log/CLogProducer.cpp",
+    "fdbus/CBaseServer.cpp",
+    "fdbus/CFdbContext.cpp",
+    "fdbus/CFdbBaseContext.cpp",
+    "fdbus/CFdbSession.cpp",
+    "fdbus/CFdbMsgDispatcher.cpp",
+    "fdbus/CEventSubscribeHandle.cpp",
+    "fdbus/CFdbUDPSession.cpp",
+    "fdbus/CBaseSession.cpp",
+    "fdbus/CFdbWatchdog.cpp",
+    "fdbus/CFdbEventRouter.cpp",
+    "platform/CEventFd_eventfd.cpp",
+    "platform/linux/CBaseMutexLock.cpp",
+    "platform/linux/CBasePipe.cpp",
+    "platform/linux/CBaseSysDep.cpp",
+    "platform/linux/CBaseThread.cpp",
+    "platform/socket/CBaseSocketFactory.cpp",
+    "platform/socket/linux/CLinuxSocket.cpp",
+    "platform/socket/sckt-0.5/sckt.cpp",
+    "platform/socket/CGenericClientSocket.cpp",
+    "platform/socket/CGenericServerSocket.cpp",
+    "platform/socket/CGenericSession.cpp",
+    "platform/socket/CGenericSocket.cpp",
+    "platform/socket/CGenericTcpSession.cpp",
+    "platform/socket/CGenericUdpSession.cpp",
+    "platform/socket/CGenericUdpSocket.cpp",
+    "security/CApiSecurityConfig.cpp",
+    "security/CFdbToken.cpp",
+    "security/CFdbusSecurityConfig.cpp",
+    "security/CHostSecurityConfig.cpp",
+    "security/CServerSecurityConfig.cpp",
+    "utils/fdb_option_parser.cpp",
+    "worker/CBaseEventLoop.cpp",
+    "worker/CBaseWorker.cpp",
+    "worker/CFdEventLoop.cpp",
+    "worker/CThreadEventLoop.cpp",
+    "worker/CSysFdWatch.cpp",
+    "utils/CBaseNameProxy.cpp",
+    "fdbus/CIntraNameProxy.cpp",
+    "server/CAddressAllocator.cpp",
+    "log/CLogPrinter.cpp",
+    "log/CFdbLogCache.cpp",
+    "utils/cJSON/cJSON.c",
+    "fdbus/CFdbAFComponent.cpp",
+    "datapool/CDataPool.cpp",
+    "datapool/CDpClient.cpp",
+    "datapool/CDpServer.cpp",
+]
+
+FDB_PROTO_DIR = "example/idl"
+FDB_IDL_GEN_DIR = "vendor/bosch/fdbus/" + FDB_PROTO_DIR
+cc_library_shared {
+    name: "libfdbus",
+    vendor_available: true,
+
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+        "-DCONFIG_SOCKET_CONNECT_TIMEOUT=0",
+        "-DCONFIG_LOG_TO_STDOUT",
+        "-DCONFIG_FDB_NO_RTTI",
+        "-DCONFIG_FDB_MESSAGE_METADATA",
+        "-DFDB_CONFIG_UDS_ABSTRACT",
+        "-DCFG_ALLOC_PORT_BY_SYSTEM",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+        "-DCONFIG_SOCKET_CONNECT_TIMEOUT=0",
+        "-DCONFIG_LOG_TO_STDOUT",
+        "-DCONFIG_FDB_MESSAGE_METADATA",
+        "-DFDB_CONFIG_UDS_ABSTRACT",
+        "-DCFG_ALLOC_PORT_BY_SYSTEM",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libutils",
+    ],
+
+    srcs: SRC_FILES,
+
+    export_include_dirs: ["public"],
+
+    local_include_dirs: [],
+}
+
+//=====================================================================================
+//                             build libfdbus-jni.so                                  |
+//=====================================================================================
+cc_library_shared {
+    name: "libfdbus-jni",
+
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+        "-DCFG_JNI_ANDROID",
+        "-DFDB_CFG_KEEP_ENV_TYPE",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+        "-DCFG_JNI_ANDROID",
+    ],
+    srcs: [
+        "jni/src/cpp/CJniClient.cpp",
+        "jni/src/cpp/CJniMessage.cpp",
+        "jni/src/cpp/CJniServer.cpp",
+        "jni/src/cpp/FdbusGlobal.cpp",
+        "jni/src/cpp/CJniAFComponent.cpp",
+    ],
+
+    shared_libs: ["libfdbus"],
+
+    include_dirs: [
+        "frameworks/base/core/jni",
+        "frameworks/base/core/jni/include",
+    ],
+}
+
+//=====================================================================================
+//                                build fdbus-jni.jar                                 |
+//=====================================================================================
+java_library {
+    sdk_version: "current",
+    name: "fdbus-jni",
+    srcs: ["jni/src/java/ipc/fdbus/**/*.java"],
+}
+
+//=====================================================================================
+//               build fdbus-java-client.jar (java test client)                       |
+//=====================================================================================
+java_library {
+    sdk_version: "current",
+    name: "fdbus-java-client",
+    proto: {
+        type: "lite",
+    },
+    srcs: [
+        "jni/test/MediaClient.java",
+        "jni/test/FdbusProtoBuilder.java",
+        "jni/test/CPerson.java",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+    libs: [
+        "fdbus-jni",
+        "libprotobuf-java-lite",
+    ],
+}
+
+//=====================================================================================
+//               build fdbus-java-server.jar (java test server)                       |
+//=====================================================================================
+java_library {
+    sdk_version: "current",
+    name: "fdbus-java-server",
+    proto: {
+        type: "lite",
+    },
+    srcs: [
+        "jni/test/MediaServer.java",
+        "jni/test/FdbusProtoBuilder.java",
+        "jni/test/CPerson.java",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+    libs: [
+        "fdbus-jni",
+        "libprotobuf-java-lite",
+    ],
+}
+
+//=====================================================================================
+//               build fdbus-java-appcomp-client.jar (java test client)               |
+//=====================================================================================
+java_library {
+    sdk_version: "current",
+    name: "fdbus-java-appcomp-client",
+    proto: {
+        type: "lite",
+    },
+    srcs: [
+        "jni/test/AFComponentClient.java",
+        "jni/test/FdbusProtoBuilder.java",
+        "jni/test/CPerson.java",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+    libs: [
+        "fdbus-jni",
+        "libprotobuf-java-lite",
+    ],
+}
+
+//=====================================================================================
+//               build fdbus-java-appcomp-server.jar (java test server)               |
+//=====================================================================================
+java_library {
+    sdk_version: "current",
+    name: "fdbus-java-appcomp-server",
+    proto: {
+        type: "lite",
+    },
+    srcs: [
+        "jni/test/AFComponentServer.java",
+        "jni/test/FdbusProtoBuilder.java",
+        "jni/test/CPerson.java",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+    libs: [
+        "fdbus-jni",
+        "libprotobuf-java-lite",
+    ],
+}
+//=====================================================================================
+//                                  build name-server                                 |
+//=====================================================================================
+cc_binary {
+    name: "name-server",
+    vendor_available: true,
+    init_rc: ["fdbus-name-server.rc"],
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "server/main_ns.cpp",
+        "server/CNameServer.cpp",
+        "server/CInterNameProxy.cpp",
+        "server/CIntraHostProxy.cpp",
+        "server/CBaseHostProxy.cpp",
+        "server/CSvcAddrUtils.cpp",
+        "server/CNameProxyContainer.cpp",
+        "security/CServerSecurityConfig.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+}
+
+//=====================================================================================
+//                                  build host-server                                 |
+//=====================================================================================
+cc_binary {
+    name: "host-server",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DFDB_CFG_SOCKET_PATH=\"/data/misc/fdbus\"",
+    ],
+    srcs: [
+        "server/main_hs.cpp",
+        "server/CHostServer.cpp",
+        "security/CHostSecurityConfig.cpp",
+        "server/CInterHostProxy.cpp",
+        "server/CBaseHostProxy.cpp",
+        "server/CSvcAddrUtils.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                             build lssvc (list service)                             |
+//=====================================================================================
+cc_binary {
+    name: "lssvc",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: ["server/main_ls.cpp"],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                              build lshost (list host)                              |
+//=====================================================================================
+cc_binary {
+    name: "lshost",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: ["server/main_lh.cpp"],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                              build lsclt (list client)                             |
+//=====================================================================================
+cc_binary {
+    name: "lsclt",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: ["server/main_lc.cpp"],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                             build logsvc (log service)                             |
+//=====================================================================================
+cc_binary {
+    name: "logsvc",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "log/main_log_server.cpp",
+        "log/CLogFileManager.cpp",
+        "log/fdb_log_config.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                           build logviewer (log viewer)                             |
+//=====================================================================================
+cc_binary {
+    name: "logviewer",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "log/main_log_client.cpp",
+        "log/fdb_log_config.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                    build ntfcenter (notification center)                           |
+//=====================================================================================
+cc_binary {
+    name: "ntfcenter",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "server/main_nc.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+}
+
+//=====================================================================================
+//                       build lsevt (list cached events)                             |
+//=====================================================================================
+cc_binary {
+    name: "lsevt",
+    vendor_available: true,
+    cppflags: [
+        "-frtti",
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "server/main_le.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+FDB_IDL_EXAMPLE_H = "<" + FDB_IDL_GEN_DIR + "/common.base.Example.pb.h>"
+//=====================================================================================
+//                      build fdbtest_client (native test)                            |
+//=====================================================================================
+cc_binary {
+    name: "fdbtest_client",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+        "-DFDBUS_PROTO_FULL_FEATURE",
+        "-DFDB_IDL_EXAMPLE_H=" + FDB_IDL_EXAMPLE_H,
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "example/client-server/fdb_test_client.cpp",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+
+    shared_libs: [
+        "libprotobuf-cpp-full",
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+    proto: {
+        type: "full",
+    },
+}
+
+//=====================================================================================
+//                      build fdbtest_server (native test)                            |
+//=====================================================================================
+cc_binary {
+    name: "fdbtest_server",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+        "-DFDBUS_PROTO_FULL_FEATURE",
+        "-DFDB_IDL_EXAMPLE_H=" + FDB_IDL_EXAMPLE_H,
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "example/client-server/fdb_test_server.cpp",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+
+    shared_libs: [
+        "libprotobuf-cpp-full",
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+    proto: {
+        type: "full",
+    },
+}
+
+//=====================================================================================
+//                 build fdbxclient (throughput test client)                          |
+//=====================================================================================
+cc_binary {
+    name: "fdbxclient",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: ["server/main_xclient.cpp"],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//                 build fdbxserver (throughput test server)                          |
+//=====================================================================================
+cc_binary {
+    name: "fdbxserver",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: ["server/main_xserver.cpp"],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+}
+
+//=====================================================================================
+//               build fdbntfcentertest (test for notification center)                |
+//=====================================================================================
+cc_binary {
+    name: "fdbntfcentertest",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+        "-DFDBUS_PROTO_FULL_FEATURE",
+        "-DFDB_IDL_EXAMPLE_H=" + FDB_IDL_EXAMPLE_H,
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "example/notification-center/fdb_test_notification_center.cpp",
+        FDB_PROTO_DIR + "/common.base.Example.proto",
+    ],
+
+    shared_libs: [
+        "libprotobuf-cpp-full",
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+    proto: {
+        type: "full",
+    },
+}
+
+//=====================================================================================
+//                       build app framework (native test)                            |
+//=====================================================================================
+cc_binary {
+    name: "fdbappfwtest",
+    vendor_available: true,
+    cppflags: [
+        "-fexceptions",
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+        "-DFDBUS_PROTO_FULL_FEATURE",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+        "-D__LINUX__",
+        "-DCONFIG_DEBUG_LOG",
+    ],
+    srcs: [
+        "example/app-framework/fdb_appfw_test.cpp",
+    ],
+
+    shared_libs: [
+        "libfdbus",
+        "liblog",
+        "libutils",
+    ],
+
+    proto: {
+        type: "full",
+    },
+}

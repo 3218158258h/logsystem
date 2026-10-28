@@ -1,0 +1,1300 @@
+import os
+import base64
+
+# Define output path
+output_html_path = os.path.join(os.path.dirname(__file__), "【模板】六环实习总结网页版.html") if __file__ else "【模板】六环实习总结网页版.html"
+
+# Embedded Base64 assets
+b64_1 = "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"
+b64_2 = "iVBORw0KGgoAAAANSUhEUgAABkAAAAEYCAMAAAAzqMqBAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAApRQTFRFAAAAqL7JtMfQcZWnFFBu4+rt4untNmmDcJSmuszUydfemLK/V4KX4ensxNPasMTOnLXCiae2dJipYYmdTnuROWyFMWWALWN9K2F8KF96J155bZKlp73IfZ6viqi3w9LambPAR3aNH1h0YIidIlp3XoecI1t3G1VyZ46hgaGxFVFvo7vGcpaoe5ytO22GF1JwQHCJ2uPoGlRxaY+iJFx4WoSZ1eDldpmq097kZo2grcLMSXeOUX2UP3CIGFNwQnKKu8zVxtXci6m3rMHLOmyFYoqetcjRPW6HFlJv5evvscXPlK+9haSzH1h1n7fDfJ2u2+ToTHmQc5eplbC+Q3OLHVZzY4ueytfezdngN2qDS3mQJl15xNPbvs7XNWiCjKm4rMHMKmB7nbbChKOzLmN+gKCxg6OylbC9JV14ztrgpr3IGVRxbJGkwNDYzNnf3+frZIufaI+iVICVbpOleZuseJqrf6Cwk6680Nzi5Ovu1+HmuMrTkKy6d5qrfp+vka27pLvHy9jf3ubrr8POjqu5IFl1Pm+Ih6W1XYabX4iciKa1tsjSUn6Uv8/Xa5Gkqr/K0t7js8bQHld0wdHYRXWMnrbDUH2Tqb/KWYOYL2R/WIKYobnF2+Tp2OLnRHSMxdTb0d3jx9Xcl7K/OGuEZo2ht8nS3ebqTnuSRnWNoLjEm7TBVYCWz9vhN2qE1uDlgqKyj6u6yNbdmrTBrsPNMGV/IVp2pbzH3OXpQXGJMmaAW4WaucvUSniPjaq52eLnPG6HdZiqepytT3ySb5OmU3+VM2eB4Ojsq8DLHFZzfZ6uwtHZssbPXIaaTXqRkq67hqW0LGJ9VoGW1N/kSHeOapCjNGiBlrG+vM3WKV97vc7WZYygorrGYRlhKQAAANx0Uk5TAP////8fKP///////zL//////////////////////////////////////////////3v/////rv/C/////////////////////wv///////9x////////////////////////////////9f//////SP//////////4RWZ/////////1H/////////////////zf//////////////cY///9f//////1z//////+v/o///////////Zv///////4X/////////Pv//////////////uP///////////3APymwAADBrSURBVHic7Z35o07V98dPHJoMSWWIRCJDZG5EGlxlqiih6fMVKhEVQhlCkwaVolETpTnNpSRJokl9PqV/5vvce7nu8Dxrrb3P2nuffe/79ftd673Wc+7zfs45e6+dJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACg/nIERaPQ6gAAJWmckjQJrQ/Ue5qSV+CRoeUBAEpyFAwEhAUGAkCswEBAYGAgAMQKDAQEBgYCQKzAQEBgYCAAxAoMBAQGBgJArMBAQGBgIADECgwEBAYGAkCswEBAYGAgAMQKDAQEBgYCQKzAQEBgYCAAxAoMBAQGBgJArMBAQGBgIADECgwEBAYGAkCswEBAYGAgAMQKDAQEBgYCQKzAQEBgYCAAxAoMBAQGBgJArMBAQGBgIADECgwEBAYGAkCswEBAYGAgAMQKDAQEBgYCQKzAQEBgYCAAxAoMBAQGBgJArMBAQGBgIADECgwEBAYGAkCswEBAYGAgAMQKDAQEBgYCQKzAQEBgYCAAxAoMBAQGBgJArMBAQGBgIADECgwEBAYGAoB3juY5RhDm2GYkzssADR4YSAOjeYuWx7U6vvUJJ57Upm279nnj5CKKOwj+roX3PmaiI33nUMEpoUUCwAMDaTh0OrVx5y6Cr66AnFZMd1f+70733ctsdOMr6h5aIwACYCANgw5ntJV9hYelqIH04P+uZ1PfDc1CL0EneocWCYAAGEj95+gz+8i+vsNT1ECSvvwf9vDc00ycJehEv9AiARAAA6nnNDqtv+y7OxcUN5AB/B8O9NzWLBwjaMSg0CIBkAADqc8MHtJV9L2dG4obyNmCv+zlubUZOEdQTmSrAkBDBQZSfzn3PNGXdp4obiDJ+fxfXuC3t1kYylczLLRGAETAQOor554o/NLOEyUMZLjgTy/02157RgiKuSi0SABEwEDqJy2jeW9egxIGklzM/+klXvubAcFyuDahNQIgAwZSH7l0pOz7OneUMhDBwteyUV5bbM1lgjZcHlokADJgIPWPUYNk39Y5pJSBJO34vx3ts8f2nMBXMia0RgCEwEDqHWPHCL+tc0hJAzmF/9v2PptszWBBF8aFFgmAEBhIPWP8FbKv6nxS0kCS7vwfH+GxzdZcydfRs3lokQAIgYHUL66KadtgXUobSG/+jyd47LM1E/k6rg6tEQApMJB6hWSPWp4pbSDjBX99jcdOW3KsoIxJoUUCIAUGUo9oKhmylGtKG0giWBlwjr9W23ItX8Xk0BoBEAMDqT+0mCL8ms4vhIFM5f+6r79eW3KdoAeXhhYJgBgYSL3huDLZl3SeIQwkmcD/eStvzbZEcBt1fWiNAMiBgdQXbhB+R+caykBu5P/8Jm/dtqO5oAX/CS0SADkwkHrC/8m+oXMOZSDJNP7vcz5D6ma+gpjm0gMAA6kfTJd9Qecd0kBm8H/f2Ve/7ZjJVxDJfnoAKoCB1AskE15jgDSQRLDF/hZPDbfiVl7/baE1AmACDKQ+cKrw+zn30AYyjg8wwFPHrRAsA5gVWiMAJsBA6gG39xR+P+ce2kCa8uvM8vwLfragAYNDiwTABBhI/MwZKPx6zj+0gSR38BFu8NNzG+by6ueF1giAETCQ+In18I8iMAZyCx+hrZ+e23Abr/46s4i33kliqfMuOqp3eh9/9/wFHYYvvMeyngzQDV7kX5AMUvVdCjEOw5w2LYyiynA3TZ0ze3GvJR3vPb6xG9WNr7z3vqXLFi9f4UY9QWvZd3MUMAaSCEYN3++l6Ras5LWPNAx5FB2uiZ3Q/A40WLV67gJDj80G3WCvUkwgVU9RiJFrlip3s1/LBx68XjANXIv+1z708GX9lIsozRJ/lbmHM5BH+BC5HSXVhtd+q2HIhmYglbRbM/9Ru8qMgYFEiKaBdJg1LNB88/5nPfa4YiElGdw3TH1u4AwkOZKP8YSPtpuzllduvJG+YRpIOU8OGtvUrjojYCARomUgT81fHbqUYdOnKhVTkqczSuw7NE/cwZW7jq/I9tG/Y57hla80jdlwDaSci+c7X7MGA4kQFQN5dr3g5B4fjDn9Mo16SiE5X6IIG56b//wjx7zgUpkj+BVn3UNLLMqL/Icy0ThowzaQAi+NtStRCgwkQrIbyMuPPRm6iOp0G7Ixc0klaGpeaN/JrV5xJccDo/kKl4TWWIwhvO4hxkEbvIGk6ZNXurwNgYFESFYDefW10BXUZcLzGYsqQTNDHd1ff8ONEH/wi2GnhZZYjC78h7PJOCgMpJzN7n4QwUAiJJuB9MjVzcdhBho/4BZwv5mGN99yoME3J/N1rg2tsS5beNUPmkeFgVTy9jt2lbLAQCIki4Hk1T7KcWAh75rkn3eMev4QvMdXujm0xroI7ootfkfDQA5x+nt2tTLAQCLE3kDez7F9lDPwA+vSinKRQe41H+rmDsfbfLG5myj1FK/5aYuwMJDDnGFXLA0MJEJsDeQjwbTv0LTballcUeQve9o20swblkf5cnuH1libB3nNNjvoYSDVmOngNDEYSITYGcjgN0PrljFolFV5xRCc8XqQxmo58wC/vcd8QaxbmvDjkj+2iQsDqcEgu3oJYCARYmUgo6PZkD1mnU19xThRmHHKU1oZ80EHvuQZoTXWRHBe5Ks2cWEgNfnkU7uKSwIDiRALA7nw2tCiTZj8mXmFRdgqTPe55fdIfmnL1vxFaIk14b+SP7GKCwOpzZd2Jds1GAaSS8wN5KrIDlRa9ZVxiUX4WpbMycvFsKzkq87Vdpdneb3zrQLDQOrQZ45d0TYNhoHkEmMDOSO0YnO2mdZYF8FsjHJGZ8+UP/gxNWtCS6wOP6+sr91ZFzCQuszUHD8HA4kQQwNp+nlowTawY2dZBAeEF1BeOJwTBHNBvgmt8TCCY7Bet4sMAylCX8WpDzCQCDEzkE6RXu7fZj15SlT3iIxJcsomvvLtoTUe5jFe7UK7yDCQonxnV7dxg2EgucTIQFpGs/qqNlPOtrk0qnhDkuPuTClyzOls6U+GlngY/kQa263zMJDiqC1bh4FEiImBPBvZ6/PqdMs0wEdykO2OLAlyzYd88ceG1niIpbzWxZahYSAl+N6yoWYNhoHkEgMD+TS01kysmmR3eVTAD6VNT8oQPu/w20avDy3xEBtYqe/ahoaBlOJK25aaNBgGkkvkBmIyCyqPdN1od30koidY/bM9I8s3Lfn6h4fWWIngGHfrt74wkJLcZ9tTgwbDQHKJ2EAalYWWmpWZL9peIoJ1SLk8V0mNk9j6m4WWWMlOVmh769gwkNKorD+EgUSI1EAWdg+tNDs/2F4iR7Khz7INHQeCs3xzcWJvP15nK+vgMBACjd26MJAIkRrItNBCNdhpd4XsYgOXWa4MjYZP2BbcFVpiOXezMvvbB4eBEHyiMDEIBhIhQgM5IbROHeye1T7Pxs3Ft6dL5rMtGBNaYjmrWJlH2QeHgVD0sW+srMEwkFwiM5B7Q8vU4kebK+Q0Lupum6hRMYrfAXRcaI1Jso6/ADLsmYeBkLS276yowTCQXCIykGWhVarR3eZZUzcu6k8WQSODH4H2WmiJSXIxK/K5DNHdGMitY/PDui2vttp+9Y4+/GbMYizI0FtBg+u1gQg/oPfpT8DpxVGCjYLqPrN7gb575Pl33Nvq1S3rdBUXrvKHt1+y42LB3owiWGxYaM4Wah4zOjbyrX00tMYWvMY9GcK7MZBc8sLaEQ/yr71qMXRRxqwN2ECENCVzHamaSxHzFyAzW698JOv4KZbxP5+yl3/oXZsexnkWcyG369eWP3awndU/os4Q9lFjtsVyDchAKpi9bR/b0BqclzEhDIQjTgPh3yHXoOyZpR7XJC0fMdlQ3kbTFEu4kPV9CVYFX/GtVT0cwpxR/E6lx7PEb2gGUqDJiB/4j/0wGY//hIFwxGkgRveyr/3iXV/zVvw+t2oMM43PPf4f6aKo/PEa29mOYQX+ygr8LVP8BmggBVqsZ9taRcaVeDAQjigNhJ/FephLlofRuOd3A5GmL/suYOJd5aSk3MHfiHYNK7AdKzDbj5uGaSBJMlv+z3V6pkQwEI4YDWSt+OpJH/ojnMxrdopldjd8O8O9rXdTUP5oz3b2rZDy+FltXbIlaKgGkiQfcr+hqsh0uDEMhCNGA7leeu18/URYoReOlCo9xyjueCba547qyR2t2MYqbCazZz8rL+PRRw3XQJJkm3DN4+osSWAgHBEayK2yCyftkoN9ZCOGCsUaTVU8mgk231U5uYPfHtApnLiFrLieu7JlaMgGknzDj/SvYG2GHDAQjggNRLgKY14u/n0WvSRTe4dJ0A5MsODbH7zRmG1stmfgmbiTFZd1q3SDNhDJp19OllsQGAhHfAbSS3TVpKND6zwE/zVSwXsGIWfQoW5zVkvu4Gfd9mwaTBy/2TXrAo8GbiDJOtGB1hluQWAgHPEZiGiB7MSWoWUeZovo2BKTH6M96FDGq4Ijhl/Rab5NU4kFrLSs29wavIEkUyUL+jPcgsBAOKIzENEewra5OoxvzxiJZoP1YsxNzZ/uSskdndi+Dgwl7QtWWpan8xU0eANJFg5ku5ylzzAQjugMhD9JKU03OJ9ZYsakrgLRA+TxBtGR/G+cDMjnbGOXhRHGjptJ/8qcAwaSPMHOFU3TfdbRYSAcsRnIHv5ySdtkXNuiz0LBgCyDc4U605E0jmKLhh/Zxl4QRtjbrLAtmXPAQAr/W13YRputcawODIQjNgO5hL9a2imcRKbNNbt53f8VR2M2wuTs/ssxv7GNvTCErM9YWd2yJ4GBFHiD7bT9dhsYCEdsBsIvuxj6SmiNxdjK6jY4vaItHchhGTnkF7axl4SQdSYra3r2JDCQcraxrbb2ahgIR2QGcip7rYQdXlEaZuVUOZOksegRSw3hLJDqsI8wykYFUMUuDxqqkAQGUsHVXK/Tny0jw0A4IjOQCeyl0ju0xFI0Y6Vvl4aaSYaZ5rCIPPId29gAe4L4xYIaa+VgIJWwS/u/tAwMA+GIy0C+4S6UsLOPaNjRrOIb7a5kmIa0DaScXT25xrb3L4qfgqax0hwGUsmjXLP7WgaGgXDEZSD83qxAw9sl3M+Kl85toh+PnO+0ihzCL6w4wrekC1lJazTSwEAOcjLX7nPt4sJAOOIykDXcdZJxuqlbvuTUSzdN0wbynNMicshsrq/pBN+S+Kfy/9NIAwM5xN9Mu2fZhYWBcMRlINzw1Q2hBdJwO9Kl52PTBhL8IHDvfM301f+NKbtYUOdRKwzkEFuYfre1CwsD4YjKQP5hrpL009AKaR7g9Avj0Aay12kNeaQR11fD81Yyw59TskwlDwykijZMwwdbRYWBcERlID8xF0n22RCO4dZ2Cp/Vw0Bq8RfTV+uXqJbcxOn5WycPDKSKsUzHL7eKCgPhiMpAvmUukg6hBXJwv0xfl4WBgdTiOKavadrKp5xzWTk36CSCgRxmGt0Lu6UlMBCOqAyEvkTSH0Lr42FmYgk/WxhIbdiJejf5VDOZU6O11xMGchjmx5ndITkwEI6YDOQR+hJJl4QWyNObKWGOKAoMpDbTmb6m6UX+xDzBirlSKRMM5DC7mJ4vtAkKA+GIyUCYmTc9Q+sTsJwuIX1EFAUGUgf27PnO/rQwX+sFXvCTqUEZSLKDbobV820YCEdMBnKAvkJ+D61Pwmt0DbJn4zCQOjxG97XAO960sJOXbQdr1AEGUo1n6WZ0tIkJA+GIyUCYd+hbQ+uTwMyOvVoUBAZShz/ovqYez2m8ipXyslYqGEh16JE2O21CwkA4YjIQ+jGF55WalvQja0hPFAWBgdRlJ91Y27eoFrBrivX2xcNAqvM02QyrZRQwEI6IDORFUmo6ObQ+GfSGpzJRDBhIXdhNpuk2P0KGs0Is5zIVAQZSndF0N2xCwkA4IjIQZhih15X+9syiq9goiQEDKQK3Sch2moUpz3E6FOftwECqM5XuhnRUaXVgIBwRGcgp9PVxTGh9MpgzvG+UxICBFOFTurEF7vchYwUr4yq9ZDCQGtATyP61iAgD4YjIQIaQUvuHlifkHrKK9FhJDBhIMbiBrH4ecnbkVKxSTAYDqcHFZDc+sIgIA+GIyEDoEdkXhJYnhd6MLjo8DwZSjBvIrpTzhAcVXTkRVstJSwADqQH9DTHOIiIMhCMiA6E3CgnHSIVnP1lGY0kIGEhR2P0Xd7rX0IvTUKb5rQ4DqQH9kPsMi4gwEI6IDIR+S7oytDwp9DX5oCQEDKQox5NtKdDdvYazOA0HNLPBQGrwM9mNeRYRYSAcERkI/YxbNgQkB7xKlnGeJAQMpCifkW0pZ6lrCR+yElQ3xMNAarCQ7Ib0uLbqwEA4IjKQMlLq2aHlSbk0e8dhIMXZS/Yl9XBi5Tmcgn2q6WAgNaC/zH6ziAgD4YjIQEilVtuEgvAKWcYnkhAwkOJcSF8iBRo5VsAeZfuGajoYSE3Ibgy1CAgD4YjHQJqTSuMxkPHZ64CBlOAlurdputltfmarUppeq5sPBlITehmFRUAYCEc8BrKJVDomtDw5ZB0wkCxspXub2h6NLaUtl36sbj4YSE02kO2wCAgD4YjHQOgxhF+ElieHHhoqiQADKQX9DVKgt8vsLbnsM5UTwkBqQh+WYBEQBsIRj4EsIpV+G1qenCfJQiQRYCClYEepT3SZ/QQu+wPKCWEgNaFX+lsEhIFwxGMgg0mlNmv0AkF//WeP0JANhDt0Pk1nuMtNX6Gpg4nygQ1kVJMAUIIuINthUSEMhKO+GMiw0PLkDCQLkUSAgZSEHUXl8Fknd+C9/k74EAbyxOPTBzSb8DF9H+2WKRc0+37JniLa6G2cFsXCQDjqi4HoHdLjnJlkIZIIMJCSNKF3CxVY7Cz3RC71Iu2Mng1k0sqHrqXf4HnltQHP1xIIA6mEVA0DKQYMpIoGbSD8Vj6ro00lHMtl/l09pUcD2fV8625cgQHYv2BTNZEwkEpI1TCQYsBAqmjYBkKPsyjnG0eZj+QS366e0puBPE8fFxuU1VuqZMJAKiFVw0CKAQOpomEbCL8UarubvNdxeVfr5/RjIC0GsHOOwzKx8cHtPTCQSkjVMJBiwECqaOAGsphsToEn3eQdxOU9Qj+nDwN5hF7alBM2P1quFQZSCakaBlIMGEgVDdxAknfJ7qTCUx9N2cVldXEku3sDOXoCV1de2H8dDOQQpGoYSDFgIFU0dAN5i+xOgetdZL2Zy7rEQVLXBjK7M1dVnuj8D/aBVEKqhoEUAwZSRUM3EKbBBYY7SErv7nG0Bd6xgXTM0ZpdBdQbDAOBgQQABuKYB8j2FGimn/NWLue9+jkdG8jU67maIkO9wTAQGEgAYCCu6U/2p8Bn6imHcSlXqKdM3BrIvVxF0aHeYBgIDCQAMBDXfE/2p8B32hmXcxkf0s5YgUMDmcxVFB/qDYaBwEACAANxzYtkfwqs0s44l8t4jHbGCpwZyNnsXPwIUW8wDAQGEgAYiHOakQ0qcJxywtuYfJ2V8x3ElYE0Ysd6xYh6g2EgMJAAwECc8xTZoAKv6ebbxuW7TDffIRwZCLsQOk7UGwwDgYEEAAbiHnb39KOq6dow2VzNkHdjIMdxzYsU9QbDQGAgAYCBuOdZskMFBmlmW8tlO1UzWzWcGMjzXDWxot5gGAgMJAAwEA+0JVtUYI5ish1Mrq6KuWrgwkC2cp2LFvUGw0BgIAGAgXhgCdmiAh31crGLvnro5aqJAwO5ZihXTbSoNxgGAgMJAAzEB9yRq4p3BduZVH1H6eWqiQMDYW/d4kW9wTAQGEgAYCA+uJvsUYHax6Ha04XJNFctU230DWQf17aIUW8wDAQGEgAYiA/mcIMAv9XKtIVJlD6hlakO6gYyjqslZtQbDAOBgQQABuKF08gmFeiklOg1Js8zSnmKoG0gjbieRY16g2EgMJAAwEC8cA3ZpAKn6+RhNy0erZOnGNoGUo9fgKQwkIPAQIoBA6kCBlLJfrJLadqzqUqaB5k0J6pkKY6ygQxhSokc9QbDQGAgAYCB+OFnskup0uraJty7ln81spRA10Bmcw2LHPUGw0BgIAGAgXjiC7JNaTpQI8l0Jkk7jSSl0DWQ1Uwptel55BVr1u990CN716/Z18d6o4p6g2EgMJAAwEA8cSrZpgLLFJJMYXKcopCjJKoGMpZrVzW6zfvp1oWOimL5pmWr1janJVqkgoFwwEC8AwPxRVeyT2l6VvYURzApumdPQaBqIB8zpRxmXktH9Riw8S76/6gIFllgIBwwEO/AQHzRg+xTgVcyp3iaydBboYzSaBoIe6r7Qaa10ll8kJ21g8qEmiuxSAED4YCBeAcG4o2+ZKPS9OqsCSYxCdJ+GmWURNNAjuRKqaD7DFe12PDN1yLRB7FIAAPhgIF4BwbijQFko9K0LOuUqj+ZBKpT4+uiaCCyIbyTX3BWix3rxoh0V2ARHgbCAQPxDgzEG2eTjSowOmOC/kz8FipllETRQCZwrSow8SNnlVgz6kuB8EososNAOGAg3oGB+ON8slNp2j5beG5o/DCdKkqiZyDfMJWUc+0Kd5VkYCy3E+cQFrFhIBwwEO/AQPwxnOxUgSMyhd/ARL9IqYxS6BkIt50lVVmz5oafb+PFl2MRGgbCAQPxDgzEIxeTrcp43TzCBG+jVUUp9AyEs8I0fcldGVn5R+YgFpFhIBwwEO/AQDzSi2xVgeUZgq9hYl+uVkYJ1AxkKtem9GKHZWRmMbfcrgKLwDAQDhiId2AgPmlH9ipNX7cP3Y8J3UWvihKoGUhjppT0N4dVKPApp78ci7gwEA4YiHdgID45hexVmg61D80denimXhUlUDOQaUwpLmfSqzCIKyCFgRwEBlIMGEgVMJAadCeblaatrCMzWxB6NlesojhaBrKC6ZHDU3m16MqVAAM5CAykGDCQKmAgNehNNitNb7INvI4JnHmbO4+WgTzPlJJxtbMPBJNYLKLCQDhgIN5xbSBfui4gLsaTzUrt19pezMSdpFpGUbQM5BymlPtdFqFEM+5zhoFUAgMpBgykivWuC4gM7vF4Z7uwnZiwk3WrKIqWgfxNx2nmsgYtdjGfBwzkIDCQYsBAqnjbdQGRwS5Rfccq7GlM1EuVyyiGkoF8xpQy3GUNarzNfc4WMekG/6NegxKkap8Gcr1qrmzQBuJ6aIQi3chCJBFoA9nvuoDY4MY8/WkT9B5mlLiXfx0lA7mUDuN8P6QOLZmPWd9Acrs0jVTt00C+UM2VDdpALggtT84qshBJhIFkhDzdNuaCG8l2peltNkFHM0H/o11FMZQMZCUd5lenNejBnTBlEZJegfGGeglKkKqtV40UZRSZK0+/PV4kleZ6o2xNJpKFSCK0JyN0dV1AdEwj+5Wm2yxiMhsUVc5bZ1EykLl0mDlOa9DjO+Zjtgi5nQz4rHoJOtDrRpT3hJK5xujmysQLPrviErIO0VXeNnuIBsXldL9sLp4fmZBZ58TLUDIQ+hnfDqclKPIH85nsMg95FxnwKv0aVPiQVP2xbjK657q5MjGHFNo/tDw52TvOTL5zXUB8cKcOmZ/x3ZkOaPVUzBwlA3mSjPKq0xI0uYluxybziB3JgNP1S1CBfqel/HaO7rlurkzcE41SGvp3Uk9JiGF0Ky50XUJ0jKMbZr7kdiETcJaLKuqiYyD0Y+x0j9saFGGGW1oYCH3gy1H6JajwL6n6Td1k9BzLs3WTZYK+OizuT8OwhyxDtOeXWbA41nUJ0dGUWTKVPmEY8GQm3mAnZdRBx0AYN3RbgiZn0oVYGAg9zDmvW3ZXkqqVj1mmn6c/qpssE/SN9uzQ8qScS5YhWgzAvPS813UJ8XEH3bH0TsN4zICteU6KqIuOgVxHBmnntgRNmNn9FgbyBhnwRP0SVJhFqj5ZN9lqMpmXxYhCTiKVPh5anpQRZBknSEL8RIZIN7suIT5uoTuWdjcLt4AJ52uLso6B0Mucn3Fbgiaz6XZYGMhyMmCZfgkq0IsibtZNRp8afbxusky8RCrtEVqelKvJMlpLQjBHcftZQhoXV9AtS5caRaN/y6QjHRVRBx0D+YgMcpfbElSh22FhIMyYYk9PKk2hNwooH3NGz1Hbp5ssE+tJpcpP9tzRhyxD5NjLyBD5enOVE7jTZzeYBFvMBLvVVRW10TGQVmSQ49yWoArdDgsDYSKeq16BBsxUsA662eiVzjN1k2WCfrKXp03zJEPJMh6WhOC+wJwfpRoh1zM9a2QQi1nEoLvVl0LHQIaQQT51W4IqdDtGWUTsT0bM52MPZjKN8gCWG/Sb7oj5tNLQ8oQwu522SGJwi0h9vcONif8wPTPYLkdvaU3Tle6qqIWOgdC/zGyn3YfgXbISm4hfkBGf1i5AhXvpq2KjbjbmccgRutmy8Cqt1Mf0UwWYKn4WBaFjmL4SbhjQA8TS9D1xJGa16G6HRdRCx0AGkEEuc1uCKiPJSmwi0mcBiHZteec1r5qZlQsDlNNl4FFa6ZDQ+mQ8R1cxXhTkLzqI0IYaFtz0w97iSPQw5HS7uxpqo2Mgr5NBzHfph4N+v2gT8X26w2u1K1CA2Rd6rXY+Ol1b7XQZ8NwYN9C7WYQTWR6kW4EzpYpxG92zidI4bzHNt3lXa4mOgRwgg0SzPj7hXnTZRLyI7vCV2hUo8Ckt+TTtfPRTPoM7e+cw45qbhtYn4WW6hs9lUX6lo+T01jow3O7xGcI49HOS9EGnRdTExx3IMpcFKEMPibOJyLyyzOMuS2aJRyvtfMyJnzk6DOAEWumC0Pok0POhpU8Mt9JRIumFZ95jeiZcx8f8BEhfcVtFDXy8A4lnliL3cNEqJD3qKX1EuQIFetKK1d9p/R+db5p2PnuY1QVRHAnSla7hF1kU+myUAie5rSJOuDNPF4ui0BtB/S7M0TGQO8kgedpLzEEWYjch+WK6xXuVK8jOB7Rg4VtWA7jz2m7XTmgN9/B5UmiBPNytw3BhHOZ5fpr+67KKSGFWYaQ7RVGYn6T3Oy6iBjoGQk/GEQ3XyQf0UC+7I4OYKWp9lUvIzpG0YP1zL7g7+9fVM9pyDKM0j2+0asH9CL5HGIebzKF9akz9gJ77lqb9BDEezlPfdQyE/s2ax8f8JfgvWYjdqddb6BbLdv565GhGr4PRZt3ojLdJv9Tcw8xAfTK0PpZFzKcrfvJET2Qs53mXdURKB6ZnkpXgzKFFft8Y6BjI83QUtyVo8j1Zx/lWMenjYdN0lXINWaEHKZoOfRPRmkmZn4eg8xil+ZwsUA3m+bl8LwKze6fA3y7riBXm278LH4Eexu/760THQJjRF/GcT/YmWccBu6DT6O7kaZVRwk85Mj75RgDzAyQdKj0Z0znc2dZ5vwXhnhYa7EvqyoVKv3dYSKysZHp2LBvhazrAfR6KqIaOgbxCR3nLbQ2K0CcXWx6TQ9/WpOkY3Roywt2AuPhdyQxvNNmj6xhmUXaazg+tkIa71zM4X+AhrhUxHUXqD3rQNX9c9BP03/f1/LhXx0D60VF8bmzJxD90HcIVjrVhl8zn5usx4ed0u5kswg0qLVvoIqsNfzNK+0tegwaDPsy2wNfyWNyKtAI/uKskWujBs/wqOOYb2/eCEx0DYUY85G+hUQmYB8RfWYaloxZooVpFJpgpO2n6o4usx3NZz3KR1YYzOKWTQyuk+IFTP0Ieaw4XKxUeTtWw2MS0rBnz97vpP/f9S0vJQJgL81SXJSjCrG1vbhl2GB1WcN/qDf65hJO0jdi0S5zkNYdbRpOvM3hrcR8r3uRcd25JajkfOKslWk5nWvYZ+ddX0X/s/SxhJQNhhlEMc1qDGsyCW+sXpMyBFwV+0iwjAy1ZpY429TBPhtO0/zduEhvD7OJK0y62vzOcM5sZMWB4Kt4v7MWSyvclNhw+ZDr2HfnXzE912VZ2RZQMpAfTlBzNwyP4nC7iJdu4gpv9fEwsXtSFFerorMzX2cR5GXXL/FZKbbcLeeA3VvoDJuHuYcMVWJWbt1e5gV7qSa/DZTZpveurhiqUDOQI5jI602kRSnDbjGdZRz6PiZymE3NxiDT3LtvdMtXhbOb0OUepDWGXRKTpHaE1FodZ/1nOCqOAz/AB03RmHD8ePcLd5lNHgO+k/9T/3k0lA+FOuBy6yGkVOtBngWR5uC1YsJKH2XPcLrk0i4kyMBusypnuKrcZ7DKD/LywqUFjXvc+s4gCLy0wZaOTciLmJLphxG3E2fRftvdXwyGUDIR9hv2myyJ0YEbMcG+3SOgzfHLSIW6/SjnXuEr+gCB5Pl5PfydQ+mxokXXZJpBtusKuvSBmmnZ9yklB8cKcKZz+U/Iv6bHn+gct8GgZSDPuKvqvyyo0OJt7O5plSJng15/pzz91uAXq5fRxln1UmSB9L2fpDeBG05TT0+tEVAkzBKq7mQZlTts8RBm/vbphwdzEllxKNZ7+jtIfc8qjZSDs9bl7jssyFGDX2mYZzMA94qvAYBOXA3pLJH7kLr9gY3OajnWXX84agdCeOTuGc6Wku+ZvKplNCVU4e/IZJ/OZdm0t8XfMW6yjvBZRiZaBMBvsC+xwWUZ2uCM60/TcLOF/Z8MXOCvgyCduxkUFLucqizw2xE16HaaKlObqRD7JY7f0tlHGcTuKWlFg9TsOqoqWUczTjrbF/+wjpskhVrprGUgyhb2G5josIzOnsvKz7aDjZ5eW0/5lpXJM2SXZFJamV7nU8KBIQh7G4ohWH+XoFJPkfJFgySjx2khvQdKeHdWrihhunsG4Yn/UnHmTGmSZopqBvM5fQ40d1pGRXrz6edkysC+JKugb5j3xnpkidW7nc7NzCivps8mpCgncVrCDTMjJMSaDvxDJtXqCzu9tr+IH+aDfes9GpldlxQ7hZPaPhBldqWYggoX8bubwaXCsQPyN2VJMEqQo50uVgswYJ9Tm+KiaS2QqulDr5P3Anep3kK6fhhZazpL+MrV3W0VnRwhU44JLlUuLlx1Mq1bV3T3D3UaGGRenZiBJW8EVtN5dIVmQLCH9JGuS5wRJylnlezPQ7bIfqGl6k2Mh3GF5VUxWP5XdENkDyQJrdgVWmmxkxitUYbmE52ZpKyr43NEgg+j4iutUu1qHKDVht4GGWbahZyDcyoIKfih2axaYF/dLlGceuX6LJEsFk30ewLWJHS9bhfPFmOdIlfT/P9dSGNZLlU40GG/rgrskq6MruMsyg+SHYzWePDme4+Vc8hrbqRrz8WawO8l+C1OHnoEIfz8+5q4WO0YwI3gPYjKmtDizZA0qZ82HCoVJWDFL/AWTfutcTRN+FNchVoU9Sf4F4WOhAgNXhpM5jjnCvRrW77eY00iLcNPcIzSLjBPuEM4C/Qcd7NOzremD7iqwPKwoK3oGkjwtu3za3+iqFhsmfStT/bRCrnayVBU8k2nRsJA9Z8jtI+05yb2g4ww69EnHkONxPjBQOvP9F0JIvOV48RKpNMs0z9MMslRx7dWn/Bz6QWRYRLv4+7Z9993f2BnK5YQ6S1nRQH6W1FnOyNzsSu+wWar5fwrZZKODDtH1yuw3PRQrHv7YSE/RlYXa8FMnq/PSOh+ainOBkdLz/vWt73JusltN9mZIJRgOVoKB136998+Tj+qdRxyvGElaWXetKLZPILOiaCDJSHG1fffmYD3GyyfLn5joDKriJ4HXpP2BZY62Fq698i9DLV+4EVKLb2TPEw8zYXonL8Lq8I7od+FhenZ+wNvD/+Hj5P+KlZAjxDn+NUwWBzu1Po1SyJ+CCugZarWGpoFcZlLxwDVn/utsMh/HOx3mP8cfjlCN0uPNTLhH7lhVtHn7p081Hx4Nvv/hh941/PIrx9PqhxHmyroPG7B0sf+HRAY7IA4xccJjC4Y73cbyzaU3HBg51FxZtpV/so2VkeHcQCTz8cQEOztY00AS4fuEarSZsH/zznke2bn5vAnSZauH6azU7bHGmQ+x6q83T3gmS6d2nr/56xOnWDhHJXcqdYDF7NFQNYa2HXnFjjVqF8pbrNIjbZXe1nb1PkWlFazZcUWfvw3eaNXkmYwfWhvbxDnGuYH001S73LXaUqgaiNEtSEyo3SrNDV2JJf7OJF7RLXStlfCvfBYJZvTHwbSsH9o7qo9j8oFzA5GvBec5z7nYUqgaiHSHbmzY7dEtCjvzN5f87XEox3XWd0mqCNYMrA2tUYndGzN/aNyJpBHi3kA66YkNNyVG10Ca1psfZdXZoNjvJrIzePLFUF/bUiq4PHS5FUgWnUkmGERAqeHhJpwZugh13BtIIh0SwPKXe62l0DUQ0VCp6NBYwlvFVOsH1eHwPFxFvCHdJaJVy6bL6nKJzknB9e5FugcD+VFL6xb3WkuhbCDS3YQxoTwCckvoeozZrtsAHrVfZhmQbXt5N7TM7GjNp5sQuhBlPBiI1uKDgR6klkLbQF6sdw+x1Cd4TA9dkSEHtBvAY73ASQ+ZgTTdEFpnVq5Q+9BM957kHB8Gwh2OLmSbB6ml0DaQpJFOT3JDtxXqPY/refFp6vXz3HNS6KqlG+83Gc4SzBv7FT8181X8ecaHgcjmmXB09aG0FOoGkjys0ZPc0NPFBrp7Q1dlwOkO6udpbr5XRxnp5JZ+UTuI1ganSurVUywvBrJEQ+kpPpSWQt9A6sebxUO4OcT1/dBliQnw/KqCUaHfLohHf80Jf7dkzT7lT+2E0AUp4sVANN6C+BkyVAoHBlKfbmVtjomWYDLMNSTfO6pfQOA36fLZkaNODKvUnt/VP7TtoUvSw4+BmA/Dr8N1XoSWwoWBJNdm70o+cPf9udZiLJZ3ylxPJCUJu5rXZPjwl0GVWtPRwYe2zHQaZm7xYyDZr525fnSWwomBjDId9ZpTZik3uzqLrg9dHcvApxzWL2BGyD3pRtPrlUdze6H7j04+tNlRvxOqhicDaZJx2WrIJbzlODEQyYGNEXC8aqfr0Cx0fQyrg5/n/ejAcNWbHX/yhuDIuHwxbaGjDy2ZHLo0HTwZSDIjm8wOnmSWwpGBJC9la0secH6a9ejQFZJc4rp8AbusZ/NmxvD8rH6hX/obov36vDoL5Afp5hhfBpKclUXl275UlsKVgSSPZWlLDhjzhmKXS9Aiv4+xZj7uvnwJv/YN1ADjAxh/yscQSBG73Z4JumlH6AIV8GYgczJsBjnRl8iSODOQ5NgIhz4d5voX9XpM0COnTTrHS/US/gh0L2t+gu8tq8MoNWfNHAcfVA162R9zmxe8GUhyjfUw/HbNvYkshTsDSTpNse1LeAapNZhhYx7nu0/7ylf5Ev67O0QPbI6A3xbFEqRut6p/REU4ELrMrPgzkGSrpcTdt/jTWAqHBpIkd1g2JjRen98sWBW63FoMvctj9RLmKJ68I8bGQJJ+awIoNeQM7Y+nBH+cHrrSbHg0kGSbncRLPUoshVMDSRZHedal793Xv+ZpT0jfxhk/cxcsn+e9D1YGkiRT93lXakTr93Q/GYqFUc+k8Gkgyd0WAvv28qmwFG4NJEmGRPRqsZIvFmv01Yz38zLDuOxk54/H7XjF93kTlgaSJE+d51mpAXvP1vxMeG55LnTF9ng1kGSd8WKRKVO9CiyFawNJxs+NykJOCmTrHfNwF9J37mdhqpfQYrPXXlgbSJJct9+rUjGDnG39KM1n9wXcy5MJvwaSdJppJm91+PfnFTg3kCR5YUA0FrLB89l71VkX+jyF35xvfMnI4O0et+tlMJAkWdh4oj+lMgbet0nrczDk/vU5XWpI49lAkl1GIwRDHLJQFA8GUvgZ8lO7LB+lL9ZcpFKtNbO3h/u11v1AgCd35nQ431dDMhlIgX+v8KVUQNl6jXPP7TluUB5usM3wbSBJMlq8nPfv0PvPD+PFQAosbp3zJY4/jMjDy+NLjwpxxF27M54NXbiYe65628tG56wGUvhJ+cv5ubjmPzl9rELfs3Lhr29G8yCiAv8GkuySrX2e2MO/tJL4MpACn55xk8Ln6oKy/Q8fo1hoNl7Y8qXPn2v9dy7w/GY1O7fPdz/iJLuBlPO/cX2cK6UoO6/VNSqFqNCoVesTo3mcFcBAkmTR1ezL9K43hxBWEo8GUmDRqV/mbWFv98+HPKJbpAIXvvr9m+5dZPeEWTMCD9y1Z+vovU5nPusYSDkXvT8oxJlTfb89sDKPjyX/uGj66zvP+i0XN2cUQQykwFJyvtG+nIwYqsKvgVSwfNlPv69uO1Tzw7Zh1Q9vHth2aag3iwKafrX05EFv/qD/4vjJk55eP2tEoxyXLuWdWztevWPkTS7mZekZSAWTlo27ZHOfvz38/u7f5vO3506/0eN+D0vmzG7x1D9fLc4ry4M1psWAEq+ML54/PpioUpxNd9Fl6l23PHXdcD8XQ03+92inuJ7aPDF1j0qnjr5uz9R38vCqR50Xjul0u+6X0SJHSsd/2On2/6kqPcRX/zzVYvkKR7KBV9479sta08Q2PJa3ew8AAAB55Zb7lw456s/HGn/36huufs4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATg/wF9i+0/tE2eRgAAAABJRU5ErkJggg==" 
+
+# Create HTML content
+html_template = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【模板】六环实习总结网页版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {{
+            --primary-color: #4472C4;
+            --orange-color: #ED7D31;
+            --bg-color: #F8FAFC;
+            --text-color: #1E293B;
+            --slide-bg: #FFFFFF;
+            --slide-text: #1E293B;
+            --border-color: #E2E8F0;
+            --header-font: 'Outfit', 'Noto Sans SC', sans-serif;
+            --body-font: 'Inter', 'Noto Sans SC', sans-serif;
+            
+            --b64-line: url("data:image/jpeg;base64,{b64_1}");
+            --b64-logo: url("data:image/png;base64,{b64_2}");
+        }}
+
+        [data-theme="dark"] {{
+            --bg-color: #0F172A;
+            --text-color: #F8FAFC;
+            --slide-bg: #1E293B;
+            --slide-text: #F8FAFC;
+            --border-color: #334155;
+        }}
+
+        * {{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }}
+
+        body {{
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--body-font);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }}
+
+        /* App Layout */
+        .workspace {{
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }}
+
+        /* Topbar Controls */
+        .topbar {{
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 10;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }}
+        
+        [data-theme="dark"] .topbar {{
+            background-color: rgba(15, 23, 42, 0.8);
+        }}
+
+        .brand {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }}
+
+        .brand span {{
+            color: var(--text-color);
+            font-weight: 400;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }}
+
+        .controls-group {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }}
+
+        .btn {{
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--slide-bg);
+            color: var(--text-color);
+            font-family: var(--body-font);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }}
+
+        .btn:hover {{
+            background-color: var(--border-color);
+            transform: translateY(-1px);
+        }}
+
+        .btn-primary {{
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }}
+
+        .btn-primary:hover {{
+            background-color: #355ba3;
+            border-color: #355ba3;
+        }}
+
+        .theme-toggle {{
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            justify-content: center;
+        }}
+
+        /* Slideshow Container */
+        .presentation-area {{
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+        }}
+
+        .slide-container {{
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            background-color: var(--slide-bg);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }}
+
+        /* The scaling slide content viewport */
+        .slide-viewport {{
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            transform-origin: center center;
+            flex-shrink: 0;
+        }}
+
+        /* Slide Styles */
+        .slide {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }}
+
+        .slide.active {{
+            opacity: 1;
+            visibility: visible;
+        }}
+
+        /* Slide Master Background elements */
+        .slide-logo {{
+            position: absolute;
+            top: 48px;
+            right: 80px;
+            width: 200px;
+            height: 35px;
+            background-image: var(--b64-logo);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: right center;
+            pointer-events: none;
+            opacity: 0.95;
+            z-index: 5;
+        }}
+
+        .slide-header {{
+            position: relative;
+            width: 100%;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            z-index: 4;
+        }}
+
+        .slide-title {{
+            font-family: var(--header-font);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            outline: none;
+            border: 1px dashed transparent;
+            padding: 4px;
+            transition: border-color 0.2s ease;
+        }}
+
+        .slide-title[contenteditable="true"]:hover {{
+            border-color: var(--primary-color);
+        }}
+
+        .slide-divider {{
+            width: 100%;
+            height: 6px;
+            background-image: var(--b64-line);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            margin-top: 8px;
+        }}
+
+        .slide-body {{
+            flex: 1;
+            width: 100%;
+            position: relative;
+            color: var(--slide-text);
+            font-size: 1.15rem;
+            line-height: 1.6;
+        }}
+
+        .slide-footer {{
+            height: 40px;
+            width: 100%;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #64748B;
+            padding-top: 10px;
+            margin-top: 20px;
+            z-index: 4;
+        }}
+
+        /* Template Slide Layouts */
+        
+        /* Layout: Cover Slide */
+        .slide-cover {{
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--slide-bg) 0%, rgba(68, 114, 196, 0.05) 100%);
+            padding: 80px;
+        }}
+
+        .slide-cover .cover-title {{
+            font-family: var(--header-font);
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            outline: none;
+            border: 1px dashed transparent;
+        }}
+
+        .slide-cover .cover-subtitle {{
+            font-size: 2rem;
+            color: var(--orange-color);
+            margin-bottom: 60px;
+            font-weight: 500;
+            outline: none;
+            border: 1px dashed transparent;
+        }}
+
+        .slide-cover .cover-meta {{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 1.15rem;
+            color: #64748B;
+        }}
+
+        .slide-cover .cover-meta-item {{
+            outline: none;
+            border: 1px dashed transparent;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }}
+
+        .slide-cover [contenteditable="true"]:hover {{
+            border-color: var(--primary-color);
+        }}
+
+        /* Layout: Transition Slide */
+        .slide-transition {{
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white !important;
+            padding: 80px;
+        }}
+
+        .slide-transition .trans-title {{
+            font-family: var(--header-font);
+            font-size: 4.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            outline: none;
+            border: 1px dashed transparent;
+        }}
+
+        .slide-transition .trans-subtitle {{
+            font-size: 2.2rem;
+            font-weight: 400;
+            opacity: 0.9;
+            outline: none;
+            border: 1px dashed transparent;
+        }}
+
+        .slide-transition [contenteditable="true"]:hover {{
+            border-color: white;
+        }}
+
+        /* Layout: Two Column Layout */
+        .grid-2 {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            height: 100%;
+        }}
+
+        .col {{
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }}
+
+        .col-title {{
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--orange-color);
+            margin-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 6px;
+            outline: none;
+        }}
+
+        /* Warning tip blocks */
+        .tip-block {{
+            background-color: rgba(237, 125, 49, 0.08);
+            border-left: 4px solid var(--orange-color);
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            color: #64748B;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.4;
+        }}
+
+        [data-theme="dark"] .tip-block {{
+            background-color: rgba(237, 125, 49, 0.15);
+            color: #E2E8F0;
+        }}
+
+        /* Self Intro Layout Specifics & Compact Layout to prevent overflow */
+        .slide-intro-grid {{
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 30px;
+            height: 100%;
+        }}
+
+        .intro-avatar-container {{
+            width: 100%;
+            height: 200px;
+            background-color: #F1F5F9;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.2s ease;
+        }}
+
+        [data-theme="dark"] .intro-avatar-container {{
+            background-color: #334155;
+        }}
+
+        .intro-avatar-container:hover {{
+            border-color: var(--primary-color);
+            background-color: rgba(68, 114, 196, 0.05);
+        }}
+
+        .intro-avatar-image {{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }}
+
+        .intro-avatar-placeholder {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #64748B;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 10px;
+        }}
+
+        .intro-avatar-placeholder svg {{
+            width: 36px;
+            height: 36px;
+            stroke: var(--primary-color);
+            stroke-width: 1.5;
+        }}
+
+        .intro-details {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+
+        .intro-col-title {{
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--orange-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            outline: none;
+        }}
+
+        .intro-list {{
+            list-style-position: outside;
+            padding-left: 15px;
+            margin-bottom: 8px;
+        }}
+
+        .intro-list li {{
+            margin-bottom: 4px;
+            font-size: 0.92rem;
+            line-height: 1.4;
+            outline: none;
+        }}
+
+        /* Bullets */
+        ul {{
+            list-style-position: outside;
+            padding-left: 20px;
+        }}
+
+        li {{
+            margin-bottom: 12px;
+            line-height: 1.6;
+            outline: none;
+        }}
+
+        li::marker {{
+            color: var(--orange-color);
+            font-size: 1.2em;
+        }}
+
+        /* Text editable indicator styling */
+        [contenteditable="true"] {{
+            border-radius: 4px;
+            padding: 2px 6px;
+        }}
+
+        [contenteditable="true"]:focus {{
+            outline: none;
+            background-color: rgba(68, 114, 196, 0.05);
+            border-color: var(--primary-color) !important;
+            border-style: solid !important;
+        }}
+
+        /* Bottom Toolbar Navigation */
+        .bottom-toolbar {{
+            height: 60px;
+            background-color: var(--slide-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 10;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }}
+
+        .nav-buttons {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+
+        .slide-counter {{
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #64748B;
+        }}
+
+        .select-slide {{
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--slide-bg);
+            color: var(--text-color);
+            font-family: var(--body-font);
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }}
+
+        .progress-bar-container {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+        }}
+
+        .progress-bar-fill {{
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }}
+
+        /* Live Demo Layout */
+        .demo-box {{
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            background-color: #F8FAFC;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: #64748B;
+            padding: 40px;
+            transition: all 0.3s ease;
+        }}
+
+        [data-theme="dark"] .demo-box {{
+            background-color: #1E293B;
+        }}
+
+        .demo-box svg {{
+            width: 64px;
+            height: 64px;
+            stroke: var(--orange-color);
+            stroke-width: 1.5;
+        }}
+
+        /* Presentation Mode Overrides */
+        body.mode-presenting {{
+            background-color: #000000;
+        }}
+
+        body.mode-presenting .topbar,
+        body.mode-presenting .bottom-toolbar {{
+            display: none !important;
+        }}
+
+        body.mode-presenting .presentation-area {{
+            padding: 0;
+        }}
+
+        body.mode-presenting .slide-container {{
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            max-width: none;
+        }}
+
+        /* Keyboard help toast */
+        .toast-help {{
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: rgba(30, 41, 59, 0.9);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }}
+
+        .toast-help.show {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
+
+        .toast-help-title {{
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 4px;
+            margin-bottom: 2px;
+        }}
+    </style>
+</head>
+<body>
+
+<div class="workspace">
+    <!-- Topbar controls -->
+    <div class="topbar">
+        <div class="brand">
+            六环实习总结网页版 <span>| Widescreen 16:9 Presentation Template</span>
+        </div>
+        <div class="controls-group">
+            <button class="btn btn-primary" id="btn-mode">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                放映 (F)
+            </button>
+            <button class="btn" id="btn-save">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                保存本地
+            </button>
+            <button class="btn" id="btn-export">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                导出单文件HTML
+            </button>
+            <button class="btn theme-toggle" id="btn-theme" title="切换深/浅主题">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Presentation Viewport -->
+    <div class="presentation-area">
+        <div class="slide-container" id="slide-container">
+            <div class="slide-viewport" id="slide-viewport">
+                
+                <!-- SLIDE 1: Cover -->
+                <div class="slide slide-cover active" data-layout="cover">
+                    <div class="cover-title" contenteditable="true">实习总结</div>
+                    <div class="cover-subtitle" contenteditable="true">XXX项目</div>
+                    <div class="cover-meta">
+                        <div>姓名：<span class="cover-meta-item" contenteditable="true">代用名</span></div>
+                        <div>部门：<span class="cover-meta-item" contenteditable="true">软件中心</span></div>
+                        <div>日期：<span class="cover-meta-item" contenteditable="true">2026.06.25</span></div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 2: Self Intro (Compact & Non-overflowing layout) -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">自我介绍</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <div class="slide-intro-grid">
+                            <div class="col" style="align-items: center; justify-content: center; gap: 15px;">
+                                <div class="intro-avatar-container" onclick="triggerAvatarUpload(this)">
+                                    <input type="file" class="avatar-file-input" style="display: none;" accept="image/*" onchange="handleAvatarUpload(this, event)">
+                                    <div class="intro-avatar-placeholder">
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <p>点击选择照片<br><span style="font-size: 0.75rem; opacity: 0.7;">(自动转为Base64保存)</span></p>
+                                    </div>
+                                </div>
+                                <div style="font-size: 1.25rem; font-weight: 600; text-align: center;">
+                                    姓名：<span contenteditable="true" style="border-bottom: 1px dashed var(--primary-color);">代用名</span>
+                                </div>
+                            </div>
+                            <div class="col" style="gap: 5px;">
+                                <div class="intro-col-title" contenteditable="true">教育经历</div>
+                                <ul class="intro-list">
+                                    <li contenteditable="true">XXXX学校 - 本科 (电子信息工程) 2022.09 - 2026.07</li>
+                                    <li contenteditable="true">XXXX学校 - 硕士 (计算机技术) 2026.09 - 2029.07</li>
+                                </ul>
+                                <div class="intro-col-title" contenteditable="true">学校项目与擅长技术</div>
+                                <ul class="intro-list">
+                                    <li contenteditable="true">熟悉 C++/C 语言，了解 Linux 系统编程与常见进程间通信 (IPC) 机制</li>
+                                    <li contenteditable="true">了解 CMake 构建与编译，熟悉 Qt 等图形界面框架基础开发</li>
+                                    <li contenteditable="true">掌握嵌入式 MCU 基础开发，熟悉常用的硬件通信协议</li>
+                                </ul>
+                                <div class="intro-col-title" contenteditable="true">个人属性</div>
+                                <ul class="intro-list">
+                                    <li contenteditable="true">爱好：运动、音乐、编程</li>
+                                    <li contenteditable="true">是否单身：否 (选填，说不定帮你介绍)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>2</div>
+                    </div>
+                </div>
+
+                <!-- ==================== 第一部分：课题公共知识培训总结 ==================== -->
+
+                <!-- SLIDE 3: Transition Part 1 (Training) -->
+                <div class="slide slide-transition" data-layout="transition">
+                    <div class="trans-title" contenteditable="true">第一部分</div>
+                    <div class="trans-subtitle" contenteditable="true">课题公共知识培训总结</div>
+                </div>
+
+                <!-- SLIDE 4: Part 1 Details (Training Content) -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">第一部分：课题公共知识培训总结</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <div class="grid-2">
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">公共培训与工厂产线参观</div>
+                                <ul>
+                                    <li contenteditable="true">**安全、礼仪与文化培训**：系统学习了公司级安全红线规章、信息保密与网络安全规范，以及职场日常礼仪与企业文化价值观。</li>
+                                    <li contenteditable="true">**工厂生产线实地参观**：深入智能制造工厂生产线，直观学习了电路板精密贴片（SMT）、整机自动化装配测试及精益质量控制管理流程，建立软硬件协同的大局观。</li>
+                                </ul>
+                            </div>
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">AI实践与工具配置</div>
+                                <ul>
+                                    <li contenteditable="true">**AI辅助研发环境配置**：完成大模型辅助编程工具与开发环境配置，熟悉 AI 自动补全、上下文感知及代码安全审查的基本研发流。</li>
+                                    <li contenteditable="true">**JIRA MCP与自定义技能**：基于 Model Context Protocol (MCP) 打通集成企业 JIRA 系统，实操完成一条 AI Custom Skill 技能的编写、加载与闭环运行。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>4</div>
+                    </div>
+                </div>
+
+                <!-- ==================== 第二部分：实习课题总结 ==================== -->
+
+                <!-- SLIDE 5: Transition Part 2 (Project) -->
+                <div class="slide slide-transition" data-layout="transition">
+                    <div class="trans-title" contenteditable="true">第二部分</div>
+                    <div class="trans-subtitle" contenteditable="true">实习课题总结</div>
+                </div>
+
+                <!-- SLIDE 6: Part 2 Details (Project Summary Guide) -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">第二部分：实习课题总结</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <div class="grid-2">
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">研发方案与设计要点</div>
+                                <ul>
+                                    <li contenteditable="true">**方案与协议设计**：在此处简述实习课题的总体方案与接口协议设计要点。</li>
+                                    <li contenteditable="true">**核心模块划分**：阐述你如何划分系统中的不同服务以及其各自的职责边界。</li>
+                                    <li contenteditable="true">**非功能指标考虑**：列举课题中对健壮性、性能、线程安全等指标的架构考量。</li>
+                                </ul>
+                            </div>
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">核心功能与技术实现</div>
+                                <ul>
+                                    <li contenteditable="true">**功能模块开发**：列举你所开发的核心功能与具体表现形式。</li>
+                                    <li contenteditable="true">**技术工具应用**：列出课题中你所用到的具体技术栈、通信协议或开发工具。</li>
+                                    <li contenteditable="true">**问题分析与排查**：简述课题开发过程中攻克的核心技术疑难与定位方法。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>6</div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 7: Transition Part 2 Summary -->
+                <div class="slide slide-transition" data-layout="transition">
+                    <div class="trans-title" contenteditable="true">总结</div>
+                </div>
+
+                <!-- SLIDE 8: Part 2 Summary Detail - Specific music player fdbus project (亮点和改进) -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">亮点和改进</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <div class="grid-2" style="height: calc(100% - 70px);">
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">亮点</div>
+                                <ul>
+                                    <li contenteditable="true">**断线重连异常自愈**：自建 fdbus 连接监视器与状态回调重连逻辑，实现了在播放器进程异常被 Kill 后客户端无一崩溃并自动在 1.2s 内重连并恢复播放状态订阅。</li>
+                                    <li contenteditable="true">**大文件共享内存零拷贝**：针对歌曲专辑封面大图片（1.2MB）的传输，采用了“POSIX共享内存 + fdbus控制面通知”分包拼包方案，避免了传统大报文 IPC 序列化时引发的系统卡顿。</li>
+                                    <li contenteditable="true">**ID3 信息智能转码**：增加了 ID3 信息自动编码检测与转码算法，解决了日文/繁体字符集在 UTF-8 图形 HMI 上的乱码显示问题。</li>
+                                </ul>
+                            </div>
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">待改进</div>
+                                <ul>
+                                    <li contenteditable="true">**线程锁粒度细化**：在高频广播播放进度与大并发 RPC 控制下，核心状态机对共享状态的写入存在粗粒度互斥锁瓶颈，后续应当优化为读写锁（Shared Mutex）以提升访问并发率。</li>
+                                    <li contenteditable="true">**共享内存分包自适应**：共享内存的初始分包设为固定 1KB，对于大封面文件导致 IPC 握手次数多，应尝试根据文件大小动态配置分包大小。</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tip-block">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span><strong>注意</strong>：请在此页填写你在实习课题中具体的技术突破与实际不足，避免使用空洞套话，必须量化到具体模块和具体技术实现（如：性能指标、重连耗时、内存状况等）。提示：同学填写的内容也必须是具体内容。</span>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>8</div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 9: Part 2 Growth and Plan (Specific with SMART details) -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">成长与计划</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <div class="grid-2" style="height: calc(100% - 70px);">
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">实习成长</div>
+                                <ul>
+                                    <li contenteditable="true">**通信机制理解**：通过对比 DBus 和 fdbus，深入理解了基于 Socket 的底层 IPC 线程池模型，并在中控与仪表的数据流解耦项目中成功应用。</li>
+                                    <li contenteditable="true">**防御性编程实践**：在播放器控制接口中编写了严格边界参数校验，利用 Gtest 注入越界音量和时间参数并全部拦截，成功规避了缓冲区越界异常。</li>
+                                    <li contenteditable="true">**AI 自愈测试工具**：编写了 `ai_harness.py` 自动化集成测试脚本，模拟异常数据输入并捕获编译/运行错误反馈给 AI 模型，实现自主合并补丁，减少人工定位调试时间。</li>
+                                </ul>
+                            </div>
+                            <div class="col">
+                                <div class="col-title" contenteditable="true">后续计划</div>
+                                <ul>
+                                    <li contenteditable="true">**计划1 (Specific & Time-bound)**：利用下周（6月29日至7月3日）每天晚上半小时，阅读 fdbus 中的 Connection & Disconnect 核心源码，绘制其连接状态机图谱。</li>
+                                    <li contenteditable="true">**计划2 (Measurable & Achievable)**：在下个月内将项目中的 Qt HMI 优化为基于 QML 的硬解码播放，使中控 CPU 占用率降低到 5% 以下，并通过 Top 工具度量性能。</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tip-block">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span><strong>注意</strong>：请填写你在此项目中的具体收获（要求列举出实际案例与调试过程）以及未来满足 SMART 原则（具体、可衡量、可达到、相关性、明确期限）的后续计划。提示：同学填写的内容也必须是具体内容。</span>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>9</div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 10: Suggestions to Department Part 2 -->
+                <div class="slide" data-layout="default">
+                    <div class="slide-logo"></div>
+                    <div class="slide-header">
+                        <div class="slide-title" contenteditable="true">给部门的建议</div>
+                        <div class="slide-divider"></div>
+                    </div>
+                    <div class="slide-body">
+                        <ul>
+                            <li contenteditable="true">**希望提供统一的开发板或公共环境容器**：在 fdbus 和 Qt 交叉编译链搭建过程中，不同虚拟机的 GCC 版本和动态链接库冲突耗费了一定时间。如果部门能提供预配置好的 Docker 容器，能让实习生更快聚焦到核心业务设计上。</li>
+                            <li contenteditable="true">**期待更多车载域控制器整车架构的技术分享**：期待导师或事业部的专家能多开展一些关于汽车以太网 (SOME/IP)、经典 AUTOSAR 与 SOA 架构在量产车型中的实战分享，帮助大家拓宽汽车电子领域的宏观视野。</li>
+                        </ul>
+                    </div>
+                    <div class="slide-footer">
+                        <div>软件中心</div>
+                        <div>10</div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 11: Live Demo -->
+                <div class="slide slide-cover" data-layout="cover" style="justify-content: center; align-items: center; text-align: center; background: var(--slide-bg);">
+                    <div class="slide-title" style="display: none;">演示项目</div>
+                    <div style="font-size: 5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; font-family: var(--header-font); letter-spacing: 2px;">
+                        演示项目
+                    </div>
+                    <div class="tip-block" style="max-width: 850px; margin: 0 auto; text-align: left; padding: 20px 30px; font-size: 1.05rem; line-height: 1.6; border-left-width: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0; color: var(--orange-color);"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>备注</strong>：建议能在电脑上直接运行的系统/软件在答辩现场进行实际运行演示。若课题涉及体积较大的实物硬件设备（如物理开发板、示波器等）或受现场环境限制，请务必提前一天向导师确认展示成果，并在本页附上高清实操演示视频。</span>
+                    </div>
+                </div>
+
+                <!-- SLIDE 12: Q&A -->
+                <div class="slide slide-transition" data-layout="transition">
+                    <div class="trans-title">Q & A</div>
+                    <div class="trans-subtitle" contenteditable="true">欢迎各位老师提问与指正</div>
+                </div>
+
+                <!-- SLIDE 13: Thanks ending -->
+                <div class="slide slide-cover" data-layout="cover" style="background: linear-gradient(135deg, rgba(68, 114, 196, 0.05) 0%, var(--slide-bg) 100%);">
+                    <div class="cover-title" style="font-size: 5.5rem;">THANKS</div>
+                    <div class="cover-meta">
+                        <div>汇报人：<span class="cover-meta-item" contenteditable="true">代用名</span></div>
+                        <div>部门：<span class="cover-meta-item" contenteditable="true">软件中心</span></div>
+                        <div>日期：<span class="cover-meta-item" contenteditable="true">2026.06.25</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Toolbar -->
+    <div class="bottom-toolbar">
+        <div class="nav-buttons">
+            <button class="btn" id="btn-prev" title="上一页 (Left Arrow / PageUp)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                上一页
+            </button>
+            <button class="btn" id="btn-next" title="下一页 (Right Arrow / Space / PageDown)">
+                下一页
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <span class="slide-counter" id="slide-counter">Slide 1 / 13</span>
+        </div>
+        <div>
+            <select class="select-slide" id="slide-select">
+                <!-- Javascript will populate this -->
+            </select>
+        </div>
+        <div class="slide-counter">
+            广州视源电子科技股份有限公司
+        </div>
+    </div>
+    
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+</div>
+
+<!-- Help Toast -->
+<div class="toast-help" id="toast-help">
+    <div class="toast-help-title">键盘快捷键指南</div>
+    <div>➡️ / 空格 / PageDown : 下一页</div>
+    <div>⬅️ / PageUp : 上一页</div>
+    <div>F : 进入/退出全屏放映</div>
+    <div>Esc : 退出文本编辑或全屏</div>
+</div>
+
+<script>
+    // State Management
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const select = document.getElementById('slide-select');
+    const counter = document.getElementById('slide-counter');
+    const progressFill = document.getElementById('progress-fill');
+    const viewport = document.getElementById('slide-viewport');
+    const container = document.getElementById('slide-container');
+    const helpToast = document.getElementById('toast-help');
+
+    // Update Slide Selector Options
+    function updateSelectOptions() {{
+        select.innerHTML = '';
+        slides.forEach((slide, idx) => {{
+            const option = document.createElement('option');
+            option.value = idx;
+            
+            let titleText = "";
+            const titleEl = slide.querySelector('.slide-title');
+            const coverTitleEl = slide.querySelector('.cover-title');
+            const transTitleEl = slide.querySelector('.trans-title');
+            const transSubtitleEl = slide.querySelector('.trans-subtitle');
+            
+            if (titleEl) {{
+                titleText = titleEl.textContent;
+            }} else if (coverTitleEl) {{
+                titleText = coverTitleEl.textContent;
+            }} else if (transTitleEl) {{
+                titleText = transTitleEl.textContent;
+                if (transSubtitleEl && transSubtitleEl.textContent.trim()) {{
+                    titleText += `：${{transSubtitleEl.textContent.trim()}}`;
+                }}
+            }} else {{
+                titleText = `第 ${{idx + 1}} 页`;
+            }}
+            
+            titleText = titleText.replace(/\\s+/g, ' ').trim();
+            
+            option.text = `Slide ${{idx + 1}}: ${{titleText}}`;
+            select.appendChild(option);
+        }});
+        select.value = currentSlide;
+    }}
+
+    // Initialize Slide Selector
+    updateSelectOptions();
+
+    // Listen to changes in editable headers to sync the selector title in real time
+    document.querySelectorAll('.slide-title, .cover-title, .trans-title, .trans-subtitle').forEach(el => {{
+        el.addEventListener('input', updateSelectOptions);
+    }});
+
+    // Scale Widescreen to Fit Container
+    function scaleSlides() {{
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const targetWidth = 1280;
+        const targetHeight = 720;
+
+        const scaleX = containerWidth / targetWidth;
+        const scaleY = containerHeight / targetHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        viewport.style.transform = `scale(${{scale}})`;
+    }}
+
+    // Update Displayed Slide
+    function showSlide(index) {{
+        if (index < 0) index = 0;
+        if (index >= slides.length) index = slides.length - 1;
+        
+        slides[currentSlide].classList.remove('active');
+        slides[index].classList.add('active');
+        currentSlide = index;
+        
+        // Update Selector & Counter
+        select.value = currentSlide;
+        counter.innerText = `Slide ${{currentSlide + 1}} / ${{slides.length}}`;
+        
+        // Progress Bar
+        const percent = ((currentSlide + 1) / slides.length) * 100;
+        progressFill.style.width = `${{percent}}%`;
+
+        // Save Current Slide in Local Session
+        localStorage.setItem('cvte_intern_slide_current', currentSlide);
+    }}
+
+    // Navigation triggers
+    function nextSlide() {{
+        if (currentSlide < slides.length - 1) {{
+            showSlide(currentSlide + 1);
+        }}
+    }}
+
+    // Prev slide
+    function prevSlide() {{
+        if (currentSlide > 0) {{
+            showSlide(currentSlide - 1);
+        }}
+    }}
+
+    // Mode Toggle (Presentation Mode)
+    function togglePresentationMode() {{
+        const isPresenting = document.body.classList.toggle('mode-presenting');
+        if (isPresenting) {{
+            // Request full screen
+            if (container.requestFullscreen) {{
+                container.requestFullscreen().catch(err => {{
+                    console.log("Fullscreen request failed", err);
+                }});
+            }}
+            showHelpToast("进入放映模式。按 Esc 退出。");
+        }} else {{
+            if (document.fullscreenElement) {{
+                document.exitFullscreen().catch(err => {{}});
+            }}
+        }}
+        setTimeout(scaleSlides, 50);
+    }}
+
+    // Help Toast Utility
+    let toastTimeout;
+    function showHelpToast(message = "") {{
+        if (message) {{
+            helpToast.querySelector('.toast-help-title').innerText = message;
+            helpToast.style.fontSize = "1rem";
+        }}
+        helpToast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {{
+            helpToast.classList.remove('show');
+        }}, 4000);
+    }}
+
+    // Setup Listeners
+    window.addEventListener('resize', scaleSlides);
+    
+    document.getElementById('btn-prev').addEventListener('click', prevSlide);
+    document.getElementById('btn-next').addEventListener('click', nextSlide);
+    select.addEventListener('change', (e) => showSlide(parseInt(e.target.value)));
+
+    document.getElementById('btn-mode').addEventListener('click', togglePresentationMode);
+    
+    // Keypress Actions
+    document.addEventListener('keydown', (e) => {{
+        // Avoid slide switching when inside editable blocks
+        if (document.activeElement && document.activeElement.getAttribute('contenteditable') === 'true') {{
+            if (e.key === 'Escape') {{
+                document.activeElement.blur();
+            }}
+            return;
+        }}
+
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {{
+            e.preventDefault();
+            nextSlide();
+        }} else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {{
+            e.preventDefault();
+            prevSlide();
+        }} else if (e.key === 'f' || e.key === 'F') {{
+            e.preventDefault();
+            togglePresentationMode();
+        }}
+    }});
+
+    // Exit Fullscreen detection
+    document.addEventListener('fullscreenchange', () => {{
+        if (!document.fullscreenElement) {{
+            document.body.classList.remove('mode-presenting');
+            scaleSlides();
+        }}
+    }});
+
+    // Theme Switch
+    const btnTheme = document.getElementById('btn-theme');
+    btnTheme.addEventListener('click', () => {{
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cvte_intern_slide_theme', theme);
+    }});
+
+    // Avatar upload handler
+    function triggerAvatarUpload(elem) {{
+        // Only trigger if we aren't in Presentation mode
+        if (document.body.classList.contains('mode-presenting')) return;
+        elem.querySelector('.avatar-file-input').click();
+    }}
+
+    // Handle avatar upload
+    function handleAvatarUpload(input, event) {{
+        const file = event.target.files[0];
+        if (file) {{
+            const reader = new FileReader();
+            reader.onload = function(e) {{
+                const container = input.parentElement;
+                let img = container.querySelector('.intro-avatar-image');
+                if (!img) {{
+                    img = document.createElement('img');
+                    img.className = 'intro-avatar-image';
+                    container.appendChild(img);
+                }}
+                img.src = e.target.result;
+                
+                const placeholder = container.querySelector('.intro-avatar-placeholder');
+                if (placeholder) placeholder.style.display = 'none';
+            }};
+            reader.readAsDataURL(file);
+        }}
+    }}
+
+    // Local Persistence of Edits
+    document.getElementById('btn-save').addEventListener('click', () => {{
+        const htmlContent = document.documentElement.innerHTML;
+        localStorage.setItem('cvte_intern_slide_content', htmlContent);
+        alert('修改已保存至浏览器本地缓存！');
+    }});
+
+    // Native file saving using showSaveFilePicker or standard download prompt
+    async function exportHTMLFile() {{
+        const docClone = document.documentElement.cloneNode(true);
+        
+        // Reset active slide state on start
+        const cloneSlides = docClone.querySelectorAll('.slide');
+        cloneSlides.forEach((slide, idx) => {{
+            if (idx === 0) {{
+                slide.classList.add('active');
+            }} else {{
+                slide.classList.remove('active');
+            }}
+        }});
+        
+        const script = docClone.querySelector('script');
+        let scriptText = script.innerHTML;
+        scriptText = scriptText.replace('let currentSlide = 0;', 'let currentSlide = 0;');
+        script.innerHTML = scriptText;
+
+        const serialized = "<!DOCTYPE html>\\n<html lang=\\"zh-CN\\">\\n" + docClone.outerHTML + "\\n</html>";
+        const defaultFilename = '六环实习总结汇报_网页版.html';
+
+        // Check if the native File System Access API is supported
+        if (window.showSaveFilePicker) {{
+            try {{
+                const handle = await window.showSaveFilePicker({{
+                    suggestedName: defaultFilename,
+                    types: [{{
+                        description: 'HTML Document',
+                        accept: {{
+                            'text/html': ['.html']
+                        }}
+                    }}]
+                }});
+                const writable = await handle.createWritable();
+                await writable.write(serialized);
+                await writable.close();
+                showHelpToast("保存成功！");
+            }} catch (err) {{
+                console.log("File save picker cancelled or failed", err);
+            }}
+        }} else {{
+            // Fallback: Let them customize the filename via prompt, then trigger browser download
+            const filename = prompt("请输入导出的 HTML 文件名：", defaultFilename);
+            if (filename === null) return; // User cancelled
+            
+            const cleanFilename = filename.trim() ? filename.trim() : defaultFilename;
+            const blob = new Blob([serialized], {{type: 'text/html;charset=utf-8'}});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = cleanFilename.endsWith('.html') ? cleanFilename : cleanFilename + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }}
+    }}
+
+    document.getElementById('btn-export').addEventListener('click', exportHTMLFile);
+
+    // Init Page load
+    window.onload = () => {{
+        // Load theme
+        const savedTheme = localStorage.getItem('cvte_intern_slide_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Load slide page state
+        const savedSlide = localStorage.getItem('cvte_intern_slide_current');
+        if (savedSlide !== null) {{
+            showSlide(parseInt(savedSlide));
+        }} else {{
+            showSlide(0);
+        }}
+
+        // Scale slides
+        scaleSlides();
+        
+        // Show help tooltip
+        setTimeout(() => {{
+            showHelpToast();
+        }}, 1500);
+    }};
+</script>
+</body>
+</html>
+"""
+
+# Write HTML file
+with open(output_html_path, 'w', encoding='utf-8') as f:
+    f.write(html_template)
+print("HTML Generated Successfully!")

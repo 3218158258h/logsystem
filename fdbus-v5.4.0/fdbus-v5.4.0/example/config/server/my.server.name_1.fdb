@@ -1,0 +1,88 @@
+{
+    "message": [
+        {
+            "level": -1,
+            "default": true
+        },
+        {
+            "level": 0,
+            "from": 101,
+            "to": 200
+        },
+        {
+            "level": 1,
+            "from": 201,
+            "to": 300
+        },
+        {
+            "level": 2,
+            "from": 301,
+            "to": 400
+        },
+        {
+            "level": 3,
+            "from": 401,
+            "to": 500
+        }
+    ],
+    "event": [
+        {
+            "level": -1,
+            "default": true
+        },
+        {
+            "level": 2,
+            "group": 3
+        },
+        {
+            "level": 0,
+            "from": 101,
+            "to": 200
+        },
+        {
+            "level": 1,
+            "from": 201,
+            "to": 300
+        },
+        {
+            "level": 2,
+            "from": 301,
+            "to": 400
+        },
+        {
+            "level": 3,
+            "from": 401,
+            "to": 500
+        }
+    ],
+    "permission": [
+        {
+            "level": -1,
+            "gid": null
+        },
+        {
+            "level": 0,
+            "gid": [],
+            "uid": ["pi"]
+        },
+        {
+            "level": 2,
+            "gid": [],
+            "uid": ["device"]
+        },
+        {
+            "level": 3,
+            "gid": [],
+            "uid": ["app", "root"]
+        },
+        {
+            "level": 1,
+            "gid": [],
+            "uid": ["system"]
+        }
+    ],
+    "cred": {
+        "uid": "root",
+        "gid": "system"
+    }
+}

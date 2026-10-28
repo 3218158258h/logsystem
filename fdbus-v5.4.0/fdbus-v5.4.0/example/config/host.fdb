@@ -1,0 +1,47 @@
+{
+    "host": {
+        "ubuntu": {
+            "cred" : "",
+            "permission" : [
+                {
+                    "level": 0,
+                    "hosts": "default"
+                },
+                {
+                    "level": 1,
+                    "hosts": ["windows"]
+                },
+                {
+                    "level": 3,
+                    "hosts": ["cluster"]
+                }
+            ]
+        },
+        "windows": {
+            "cred" : "",
+            "permission" : [
+                {
+                    "level": 0,
+                    "hosts": "default"
+                },
+                {
+                    "level": 3,
+                    "hosts": ["ubuntu", "cluster"]
+                }
+            ]
+        },
+        "cluster": {
+            "cred" : "",
+            "permission" : [
+                {
+                    "level": 0,
+                    "hosts": "default"
+                },
+                {
+                    "level": 3,
+                    "hosts": ["ubuntu", "windows"]
+                }
+            ]
+        }
+    }
+}

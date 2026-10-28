@@ -1,0 +1,111 @@
+#ifndef IPC_LOG_ASYNC_QUEUE_H
+#define IPC_LOG_ASYNC_QUEUE_H
+
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <deque>
+#include <mutex>
+#include <utility>
+
+namespace ipc_log {
+
+//数据容量与控制预留分开计数，让 flush 屏障在满载时仍按 FIFO 排队。
+template <typename T>
+class BoundedQueue
+{
+public:
+    BoundedQueue(std::size_t capacity, std::size_t control_reserve)
+        : capacity_(capacity), control_reserve_(control_reserve)
+        , data_size_(0), control_size_(0), closed_(false)
+    {}
+
+    bool tryPush(T value)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (closed_ || data_size_ >= capacity_) return false;
+        queue_.push_back(Entry(std::move(value), false));
+        ++data_size_;
+        ready_.notify_one();
+        return true;
+    }
+
+    bool tryPushControl(T value)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (closed_ || control_size_ >= control_reserve_) return false;
+        //控制项复用同一 FIFO，因此不会越过之前的日志；预留容量可让满载时仍提交 flush。
+        queue_.push_back(Entry(std::move(value), true));
+        ++control_size_;
+        ready_.notify_one();
+        return true;
+    }
+
+    bool waitPop(T &value)
+    {
+        //仅队列关闭且已排空时返回 false；关闭不会丢弃已经入队的项。
+        std::unique_lock<std::mutex> lock(mutex_);
+        ready_.wait(lock, [this]() { return closed_ || !queue_.empty(); });
+        if (queue_.empty()) return false;
+        popFront(value);
+        return true;
+    }
+
+    template <typename Rep, typename Period>
+    bool waitPopFor(T &value, const std::chrono::duration<Rep, Period> &duration)
+    {
+        //false 代表超时或关闭后队列为空；超时由消费者用于推进重排空闲释放。
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (!ready_.wait_for(lock, duration,
+                             [this]() { return closed_ || !queue_.empty(); }))
+            return false;
+        if (queue_.empty()) return false;
+        popFront(value);
+        return true;
+    }
+
+    void close()
+    {
+        //阻止新项并唤醒所有等待者；消费者仍可取完关闭前积压的队列项。
+        std::lock_guard<std::mutex> lock(mutex_);
+        closed_ = true;
+        ready_.notify_all();
+    }
+
+    bool closed() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return closed_;
+    }
+
+private:
+    struct Entry
+    {
+        T value;
+        bool control;
+        Entry(T v, bool c) : value(std::move(v)), control(c) {}
+    };
+
+    void popFront(T &value)
+    {
+        const bool control = queue_.front().control;
+        value = std::move(queue_.front().value);
+        queue_.pop_front();
+        if (control) --control_size_;
+        else --data_size_;
+    }
+
+    const std::size_t capacity_;
+    const std::size_t control_reserve_;
+    //等待消费者时会释放此锁，生产者只在队列操作期间持锁。
+    mutable std::mutex mutex_;
+    std::condition_variable ready_;
+    std::deque<Entry> queue_;
+    std::size_t data_size_;
+    std::size_t control_size_;
+    bool closed_;
+};
+
+} //namespace ipc_log
+
+#endif
