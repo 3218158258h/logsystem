@@ -32,7 +32,7 @@ bool acquireFdbusRuntime()
     if (runtimeReferences() == 0)
     {
         ipc::fdbus::CFdbContext::enableLogger(false);
-        if (!ipc::fdbus::FDB_CONTEXT->start()) return false;
+        if (!ipc::fdbus::CFdbContext::getInstance()->start()) return false;
     }
     ++runtimeReferences();
     return true;
@@ -45,7 +45,7 @@ void releaseFdbusRuntime()
     if (--runtimeReferences() == 0)
     {
         runtimeDestroyed() = true;
-        ipc::fdbus::FDB_CONTEXT->destroy();
+        ipc::fdbus::CFdbContext::getInstance()->destroy();
     }
 }
 }
