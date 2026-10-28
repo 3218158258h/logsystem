@@ -53,6 +53,7 @@ Windows提交命令.bat     Windows 下的白名单暂存与规范提交脚本
 CMakeLists.txt  产品工程：核心库、传输层、log_server、FDBus ExternalProject
 README.md       包内构建、运行和验证边界
 交付说明.md     快照范围、变更、验证状态和同步提示
+.gitattributes 换行规则：Shell 用 LF，批处理用 CRLF
 文件清单.txt    本清单
 SHA256SUMS.txt  文件哈希
 
