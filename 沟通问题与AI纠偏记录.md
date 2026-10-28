@@ -74,6 +74,7 @@
 - 验证结果：历史版本用户报告构建成功；本轮修改后尚待 Linux 构建。
 - 尚存限制：无法比较错误版本与当时成功版本的完整源码差异。
 - 日报/PPT 可使用要点：C++ 定义必须与声明和 CMake 编译单元一致；先核对实际源文件清单再推断修复。
+- 后续变化：2026-10-28 删除演示入口后，`include/ipc_log/local_log_target.h` 已无使用方，随该头文件一并移除；以上是当时版本的记录，不代表当前工作树仍保留该别名。
 
 ## R3-06 — 控制演示脚本可能用旧日志提前发送 list
 
@@ -119,13 +120,14 @@
 > 建档日期：2026-10-27。依据 [全量审查报告](docs/code-review-2026-10-27.md)；实施任务见 [主计划第 11 节](docs/implementation-plan.md)。
 > 2026-10-27 已修改 F6/F7/F8 及结构精简 1–6（详见下方“本轮已修改”一节），状态为**已修改待验证**；F1/F2/F3/F4/F5 仍未修改，保持“待修复/待复现”。
 > 2026-10-28 按用户决定移除跨进程 flush 协议，F7/F8 的原有实现被新的退出排空设计取代，详见文末“2026-10-28 移除 flush 协议”。
+> 2026-10-28 另按用户要求删除 `local_log_demo`、`log_worker` 和旧演示脚本，演示代码拆到独立示例工程，F3 的旧脚本路径随之消失，详见文末“2026-10-28 示例工程拆分”。
 > 后续保留发现、修改、验证各自真实日期。审查结论可被新证据修正，但不能先写“修复通过”再补证据。
 
 | 编号 | 问题与当前状态 | 已有证据 | 后续须补充 | 素材阶段 |
 |---|---|---|---|---|
 | F1 / R10 | 关闭竞态可能跳过 FIFO 中已接受记录；已定位、**待修复** | 共享消费循环的静态时序推演；未运行 C++ 竞态用例；`async_queue.h` 仍只有 `closed()`，本轮未改 | 最小触发、关闭判断改动、修复前后输出/计数、实际验证 | 日志核心 |
 | F2 / R11 | 按字节截断破坏 UTF-8；已定位、**待修复** | 合法中文按 128/4096 字节切片后严格解码失败；`logger.cpp` 仍按字节 `assign`，本轮未改 | 保持码点边界的改动、边界用例及 protobuf 上报结果 | 日志核心；跨进程复验归多进程阶段 |
-| F3 / R12 | 演示脚本吞 server 失败；已复现脚本问题、**待修复** | 临时 server exit 2、两个 worker exit 0，原始 run_demo.sh 实际 exit 0 | 退出状态传播修改、失败/成功/中断复验输出 | 多进程演示 |
+| F3 / R12 | 演示脚本吞 server 失败；**旧脚本已删除，新脚本待 Ubuntu 验证** | 历史复现：临时 server exit 2、两个 worker exit 0，原始 run_demo.sh 实际 exit 0；2026-10-28 删除旧编排，`run_server.sh` 前台运行并保留状态，`run_demo.sh` 用 `exec` 继承 | 全成功、server 失败、示例失败、Ctrl-C 清理的实际退出码 | 多进程演示 |
 | F4 / R13 | 服务未就绪就宣告 listening；已定位、**待修复** | SDK svc 注册异步，应用无实际绑定确认；未实测重复服务名 | SDK 状态依据、实现与启动成功/失败用例 | FDBus 联调 |
 | F5 / R14 | 可写不可读文件的原有大小漏算；已定位、**待修复** | `rotating_file_sink.cpp` 仍用 `ifstream`+`tellg`，失败即当 0；本轮未改 | stat 处理、非 root 权限与轮转边界复验 | 日志核心 |
 | F6 / R15 | 无符号参数接受负数；**已修改待验证**（2026-10-27） | 已加 `parseUnsignedDecimal`，拒绝空串、负号、溢出和尾随字符；语法检查通过 | Ubuntu 运行 `--count -1` 等边界用例 | 日志核心/入口参数 |
@@ -216,3 +218,18 @@
 - 验证依据：`grep` 未发现 `FlushResult|flushAsync|max_pending_flushes|control_reserve|tryPushControl|REQUEST_FLUSH|FlushRequest|REPLY_FLUSHED|protocol::LogRequest` 残留；核心源码与 `local_log_demo.cpp` 的 `g++ -std=c++11 -fsyntax-only` 退出码 0；同口径自研源码约 3,470 行降至 3,135 行。`log_server.cpp`、`fdbus_transport.cpp`、`log_server_main.cpp` 未在 Windows 编译，未执行 Ubuntu 构建、双 worker 演示或退出排空复验。
 - 状态：已修改待验证。F7 的“重复 flush”问题因接口删除而消失，F8 的 flush 回调重入面随之收敛；两者都不能据此写成运行验证通过。
 - 可摘选素材：按题目“退出时输出完”的原意，删掉业务可触发的跨进程 flush 协议，把收尾统一为一次内部排空；减少协议分支、控制预留和 pending 状态，同时保留 ACK、超时、丢弃计数与资源释放。
+
+### 2026-10-28 拆分独立示例工程，删除演示入口与旧脚本
+
+- 日期：2026-10-28；分类：工程边界与协作纠偏；由用户明确指出“测试 demo 和脚本不要和日志系统混在一起，一个是示例、一个是项目”。
+- 原先偏差：`apps/local_log_demo.cpp`、`apps/log_worker_main.cpp` 与产品入口放在同一目录、同一根 CMake 中，演示参数和演示流程混进产品构建；`scripts/run_demo.sh`、`scripts/run_control_demo.sh` 还承担多进程编排，导致脚本职责和日志系统职责重叠。
+- 修改前后：
+  - 产品：根工程只保留 `log_server` 入口；`local_log_demo`、`log_worker` 两个目标删除，根 `CMakeLists.txt` 不再生成任何演示程序。
+  - 示例：新增独立 CMake 工程 `examples/fdbus-console-demo/`，通过 `add_subdirectory` 把本仓库作为依赖引入，只链接 `ipc_log_transport`；示例源码只使用公开头文件，不在产品源码目录内。
+  - 输入方式：示例进程持续读取 stdin，每行按 `<等级> <模块> <正文>` 调用一次日志库，另支持 `:level`、`:stats`、`:help`、`:quit` 本地命令；启动时打印自身 `instance=`，供集中调级使用。
+  - 脚本：删除 `run_demo.sh`、`run_control_demo.sh` 的旧编排，改为 `scripts/build.sh`、`scripts/run_server.sh`、`scripts/run_demo.sh`。`run_server.sh` 后台拉起 name_server、前台运行 log_server；两个示例各占一个终端。
+  - 入口：新增 `FdbusLogTarget::processInstance()`，使示例能打印服务端 `list/get-level/set-level` 所需的实例号。
+- 与 F3 的关系：旧脚本“后台 worker 掩盖 server 退出码”的路径随旧编排删除而消失；`run_server.sh` 前台运行 log_server 并由 trap 保留退出状态，`run_demo.sh` 用 `exec` 继承客户端状态。该结论属于静态脚本检查，仍需 Ubuntu 实测失败/中断场景。
+- 验证依据：`g++ -std=c++11 -fsyntax-only -I include examples/fdbus-console-demo/demo_client.cpp` 退出码 0；核心 cpp 同口径语法检查退出码 0；未执行完整 FDBus/Protobuf 构建，未在 Ubuntu 运行三终端示例，未验证集中调级或退出排空。
+- 状态：已修改待验证。
+- 可摘选素材：按“示例与项目分离”的要求，把演示代码移出产品工程、改为独立 CMake 子项目，并用三个终端分别运行日志系统和两个示例进程；演示不再进入产品目标，产品也不依赖演示脚本。

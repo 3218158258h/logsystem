@@ -8,10 +8,10 @@
 ## 1. 已确定的技术与部署结构
 
 - Linux、C++11、CMake；复用项目内 FDBus 5.4.0 源码，应用协议采用已安装的 Protobuf 3.21.12。
-- 演示由一个 FDBus name_server、一个自研 log_server 和至少两个 log_worker 进程组成；name_server 是基础设施，不承担日志汇聚。
+- 运行态由一个 FDBus name_server、一个自研 log_server 和至少两个业务客户端进程组成；name_server 是基础设施，不承担日志汇聚。
 - 采用 FDBus client/server 请求与应答；服务名固定为 `svc://ipc_log_service`。
-- worker 只生成并上报日志；主进程统一排序后输出到控制台和轮转文件。
-- 复用同一套记录、过滤、队列、格式化与 Sink 实现；单进程及多进程代码在同一批次完成，随后统一编译联调。
+- 业务客户端只生成并上报日志；主进程统一排序后输出到控制台和轮转文件。仓库内的 `examples/fdbus-console-demo/` 是独立示例工程，用于人工输入演示，不属于产品源码。
+- 复用同一套记录、过滤、队列、格式化与 Sink 实现；产品服务端与传输层在同一批次完成，示例工程只做装配和输入循环。
 
 | 决策 | 本项目选择及原因 | 其他方案的适用情况 |
 |---|---|---|
@@ -29,13 +29,13 @@
 | Logger | 进程独立的原子等级阈值；过滤、采集时间/PID、构造记录；调用目标的非阻塞入队接口 | `include/ipc_log/logger.h`、`src/logger.cpp` |
 | ILogTarget | 统一 submit、shutdown、stats 契约，使 Logger 不直接依赖 FDBus 或文件实现 | `include/ipc_log/log_target.h` |
 | BoundedQueue | 短临界区、多生产者、单消费者；容量限制、关闭唤醒；记录与控制屏障有序进入 | `include/ipc_log/async_queue.h` |
-| LocalLogTarget | LogAggregator 的别名；单进程阶段复用同一队列、输出线程和 Sink | `include/ipc_log/local_log_target.h` |
 | FdbusLogTarget | worker 使用：队列 + 一个后台发送线程；序列化、连接状态、在途请求与确认 | `src/fdbus_transport.cpp` |
 | LogServer | FDBus CBaseServer 适配；校验消息、非阻塞入队、返回接收状态；不在回调中写文件 | `src/log_server.cpp` |
 | LogAggregator | 主进程的 ILogTarget；本地与远端进入同一有界队列；一个消费线程负责重排、输出和退出排空 | `src/log_aggregator.cpp` |
 | ReorderBuffer | 按时间戳和稳定键排序；时间窗口、空闲释放和容量上限 | `src/reorder_buffer.cpp` |
 | LogFormatter / Sink | 最终格式化；ConsoleSink 与 RotatingFileSink；刷新及写入错误报告 | `src/log_formatter.cpp`、`console_sink.cpp`、`rotating_file_sink.cpp` |
-| 应用入口 | 装配对象、信号退出、演示参数和进程启动顺序 | `apps/`、`scripts/run_demo.sh` |
+| 应用入口 | 装配对象、信号退出和进程启动顺序 | `apps/log_server_main.cpp`、`scripts/run_server.sh` |
+| 示例工程 | 独立 CMake 工程：读取终端输入调用日志库，打印自身实例号 | `examples/fdbus-console-demo/`、`scripts/run_demo.sh` |
 
 Logger 与目标的最小接口契约：`submit(record)` 立即返回接受/丢弃结果；`shutdown()` 停止接收并发起排空，返回 `ShutdownResult`（是否排空、是否重复关闭及相关计数），最终 join 不保证固定退出时限；`stats()` 查询过滤、接受、丢弃与错误。不提供业务可调用的 flush。具体 C++ 声明在对应任务实现，不能改变上述语义。
 
@@ -45,7 +45,7 @@ worker 路径：业务代码 → Logger 过滤与记录构造 → FdbusLogTarget
 
 主进程路径：FDBus 接收回调 → 校验并放入 LogAggregator 有界队列 → 汇聚线程 → ReorderBuffer → 最终文本格式化 → ConsoleSink + RotatingFileSink。
 
-主进程本地 Logger 直接使用同一个 LogAggregator；不绕过排序和 Sink，不发 IPC 给自身。单进程演示将 Logger 绑定 LocalLogTarget。
+主进程本地 Logger 直接使用同一个 LogAggregator；不绕过排序和 Sink，不发 IPC 给自身。跨进程示例统一使用 `FdbusLogTarget`。
 
 | 执行上下文 | 允许执行 | 禁止执行 |
 |---|---|---|
@@ -96,14 +96,14 @@ worker：`shutdown` 停止接收 → 关闭本地队列 → 发送线程取完�
 
 `ShutdownResult` 汇总是否排空、是否重复关闭、接受/丢弃/拒收/结果不确定/写错误等计数；应用入口据此决定退出码。刷新输出流不等于执行 fsync 或保证断电恢复。
 
-演示退出顺序固定：worker 停止生产并排空本地队列 → 主进程排空并停止 → name_server 停止。信号处理函数只设置退出标志，由正常线程执行关闭流程。退出排空只覆盖已经进入对应队列的记录；SIGKILL/崩溃、仍在传输层的记录可能丢失。
+示例退出顺序固定：业务客户端停止生产并排空本地队列 → 主进程排空并停止 → name_server 停止。信号处理函数只设置退出标志，由正常线程执行关闭流程。退出排空只覆盖已经进入对应队列的记录；SIGKILL/崩溃、仍在传输层的记录可能丢失。
 
 ## 7. CMake 与实现顺序
 
 - `ipc_log_core`：记录、Logger、队列、格式化、本地目标、排序/汇聚、Sink；依赖 Threads，不依赖 FDBus。
 - `ipc_log_transport`：协议生成、FDBus 客户端/服务端适配；依赖 core、Protobuf 和项目内 FDBus 库。
-- `log_server`、`log_worker`：应用入口，链接上述模块。
-- `local_log_demo`：只链接 core，用于单进程阶段验证；最小 FDBus 连通检查直接演进为最终应用，不另建一套正式产品。
+- `log_server`：产品应用入口，链接上述模块。根工程默认只构建它与 FDBus 依赖，不含任何演示程序。
+- `examples/fdbus-console-demo`：独立 CMake 工程，通过 `add_subdirectory` 把本仓库当作依赖引入并链接 `ipc_log_transport`，用于人工输入和集中调级演示。
 - 继续保留现有 ExternalProject 的 FDBus 独立构建；主工程补齐导入库、头文件、目标依赖及 Linux 运行时库路径。现有 `ipc_log_system` 继续作为总构建入口。
 - 执行者在完整实现批次中补齐所有真实库/应用目标；已有 FDBus 编译兼容设置保留，不以核心占位实现冒充完成。
 
