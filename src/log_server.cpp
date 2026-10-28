@@ -710,7 +710,7 @@ private:
     void handleRecord(ipc::fdbus::CBaseJob::Ptr &msg_ref,
                       const protocol::LogRecord &incoming)
     {
-        //校验请求与会话身份后入共享汇聚队列；ACK 只表示入队成功。
+        //校验请求与会话身份后入共享汇聚队列；ACK 表示入队成功。
         std::string error;
         if (!validateRecord(incoming, error))
         {

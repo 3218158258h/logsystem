@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1070" height="610" viewBox="0 0 1070 610" font-family="'Microsoft YaHei','Noto Sans SC',system-ui,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="none" stroke="#64748B" stroke-width="1.3"/>
+    </marker>
+    <marker id="tri" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="1.3"/>
+    </marker>
+    <marker id="diam" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M5,0 L10,5 L5,10 L0,5 Z" fill="#ED7D31" stroke="#ED7D31"/>
+    </marker>
+    <marker id="hdiam" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M5,0 L10,5 L5,10 L0,5 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="1.3"/>
+    </marker>
+  </defs>
+
+  <!-- ===== edges (drawn first, under boxes) ===== -->
+  <g fill="none" stroke="#64748B" stroke-width="1.3">
+    <!-- Logger -> ILogTarget (target_) -->
+    <line x1="270" y1="80" x2="299" y2="80" marker-end="url(#arr)"/>
+    <!-- LogRecord -> LogLevel -->
+    <line x1="150" y1="310" x2="150" y2="339" marker-end="url(#arr)"/>
+    <!-- FdbusLogTarget ..|> ILogTarget -->
+    <line x1="420" y1="185" x2="420" y2="131" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+    <!-- FdbusLogTarget *--> BoundedQueue -->
+    <line x1="420" y1="295" x2="420" y2="339" marker-start="url(#diam)"/>
+    <!-- LogAggregator ..|> ILogTarget -->
+    <line x1="570" y1="80" x2="541" y2="80" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+    <!-- LogAggregator *--> BoundedQueue (L route in gap) -->
+    <path d="M570,128 L556,128 L556,380 L541,380" marker-start="url(#diam)"/>
+    <!-- LogAggregator *--> ReorderBuffer -->
+    <line x1="690" y1="145" x2="690" y2="184" marker-start="url(#diam)"/>
+    <!-- LogAggregator ..> LogFormatter (L route in gap) -->
+    <path d="M810,128 L816,128 L816,376 L811,376" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <!-- LogAggregator o--> ILogSink -->
+    <line x1="810" y1="80" x2="839" y2="80" marker-start="url(#hdiam)"/>
+    <!-- LogServer o--> LogAggregator (L route in gap) -->
+    <path d="M570,535 L556,535 L556,110 L569,110" marker-end="url(#arr)"/>
+    <!-- LogServer ..> WorkerInfo -->
+    <line x1="570" y1="530" x2="541" y2="530" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <!-- ConsoleSink ..|> ILogSink -->
+    <line x1="955" y1="160" x2="955" y2="121" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+    <!-- RotatingFileSink ..|> ILogSink (L route in gap) -->
+    <path d="M840,318 L826,318 L826,75 L839,75" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+  </g>
+
+  <!-- labels -->
+  <g font-size="11" fill="#64748B">
+    <text x="276" y="72">target_</text>
+    <text x="556" y="380">queue_</text>
+    <text x="816" y="376">format()</text>
+    <text x="576" y="320">aggregator_</text>
+    <text x="576" y="522">produces</text>
+    <text x="158" y="326">level</text>
+  </g>
+
+  <!-- ===== class boxes ===== -->
+  <g>
+    <!-- Logger -->
+    <rect x="30" y="30" width="240" height="115" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="44" y="56" font-size="15" font-weight="700" fill="#1E293B">Logger</text>
+    <text x="44" y="80" font-size="12.5" fill="#475569">log(level, module, msg)</text>
+    <text x="44" y="101" font-size="12.5" fill="#475569">setLevel() · stats()</text>
+    <text x="44" y="122" font-size="11" fill="#94A3B8">threshold_(atomic)</text>
+
+    <!-- LogRecord -->
+    <rect x="30" y="185" width="240" height="125" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="44" y="211" font-size="15" font-weight="700" fill="#1E293B">LogRecord</text>
+    <text x="44" y="235" font-size="12.5" fill="#475569">timestamp_ms · level · pid</text>
+    <text x="44" y="256" font-size="12.5" fill="#475569">module · message</text>
+    <text x="44" y="277" font-size="12.5" fill="#475569">sequence · process_instance</text>
+
+    <!-- LogLevel -->
+    <rect x="30" y="340" width="240" height="78" rx="8" fill="#FFF7F0" stroke="#ED7D31" stroke-width="1.5"/>
+    <text x="44" y="366" font-size="15" font-weight="700" fill="#1E293B">«enum» LogLevel</text>
+    <text x="44" y="390" font-size="12.5" fill="#475569">DEBUG · INFO · WARN · ERROR</text>
+
+    <!-- ILogTarget -->
+    <rect x="300" y="30" width="240" height="100" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
+    <text x="314" y="56" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogTarget</text>
+    <text x="314" y="80" font-size="12.5" fill="#475569">submit(LogRecord) : bool</text>
+    <text x="314" y="101" font-size="12.5" fill="#475569">shutdown() · stats()</text>
+
+    <!-- FdbusLogTarget -->
+    <rect x="300" y="185" width="240" height="110" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="314" y="211" font-size="15" font-weight="700" fill="#1E293B">FdbusLogTarget</text>
+    <text x="314" y="235" font-size="12.5" fill="#475569">submit() · shutdown()</text>
+    <text x="314" y="256" font-size="12.5" fill="#475569">attachLogger(Logger)</text>
+    <text x="314" y="277" font-size="11" fill="#94A3B8">本地队列 + 发送线程</text>
+
+    <!-- BoundedQueue -->
+    <rect x="300" y="340" width="240" height="92" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="314" y="366" font-size="15" font-weight="700" fill="#1E293B">BoundedQueue&lt;T&gt;</text>
+    <text x="314" y="390" font-size="12.5" fill="#475569">tryPush() · waitPop()</text>
+    <text x="314" y="411" font-size="12.5" fill="#475569">close()</text>
+
+    <!-- LogAggregator -->
+    <rect x="570" y="30" width="240" height="115" rx="8" fill="#FFFFFF" stroke="#4472C4" stroke-width="1.5"/>
+    <text x="584" y="56" font-size="15" font-weight="700" fill="#1E293B">LogAggregator</text>
+    <text x="584" y="80" font-size="12.5" fill="#475569">submit() · shutdown()</text>
+    <text x="584" y="101" font-size="12.5" fill="#475569">run() · outputReady()</text>
+    <text x="584" y="122" font-size="11" fill="#94A3B8">单消费线程</text>
+
+    <!-- ReorderBuffer -->
+    <rect x="570" y="185" width="240" height="95" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="584" y="211" font-size="15" font-weight="700" fill="#1E293B">ReorderBuffer</text>
+    <text x="584" y="235" font-size="12.5" fill="#475569">add() · releaseReady()</text>
+    <text x="584" y="256" font-size="11" fill="#94A3B8">窗口 50ms / 容量 4096</text>
+
+    <!-- LogFormatter -->
+    <rect x="570" y="340" width="240" height="78" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="584" y="366" font-size="15" font-weight="700" fill="#1E293B">LogFormatter</text>
+    <text x="584" y="390" font-size="12.5" fill="#475569">format(LogRecord) : string</text>
+
+    <!-- LogServer -->
+    <rect x="570" y="490" width="240" height="105" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="584" y="516" font-size="15" font-weight="700" fill="#1E293B">LogServer</text>
+    <text x="584" y="540" font-size="12.5" fill="#475569">start() · shutdown()</text>
+    <text x="584" y="561" font-size="12.5" fill="#475569">listWorkers() · setWorkerLevel()</text>
+    <text x="584" y="582" font-size="11" fill="#94A3B8">校验 + 会话管理</text>
+
+    <!-- WorkerInfo -->
+    <rect x="300" y="490" width="240" height="95" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="314" y="516" font-size="15" font-weight="700" fill="#1E293B">WorkerInfo</text>
+    <text x="314" y="540" font-size="12.5" fill="#475569">session_id · process_instance</text>
+    <text x="314" y="561" font-size="12.5" fill="#475569">pid · level · status</text>
+
+    <!-- ILogSink -->
+    <rect x="840" y="30" width="230" height="90" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
+    <text x="854" y="56" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogSink</text>
+    <text x="854" y="80" font-size="12.5" fill="#475569">write(level, line)</text>
+    <text x="854" y="101" font-size="12.5" fill="#475569">flush()</text>
+
+    <!-- ConsoleSink -->
+    <rect x="840" y="160" width="230" height="80" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="854" y="186" font-size="15" font-weight="700" fill="#1E293B">ConsoleSink</text>
+    <text x="854" y="210" font-size="12.5" fill="#475569">ERROR→stderr · 其余→stdout</text>
+
+    <!-- RotatingFileSink -->
+    <rect x="840" y="280" width="230" height="80" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <text x="854" y="306" font-size="15" font-weight="700" fill="#1E293B">RotatingFileSink</text>
+    <text x="854" y="330" font-size="12.5" fill="#475569">write() · rotate()</text>
+  </g>
+</svg>
