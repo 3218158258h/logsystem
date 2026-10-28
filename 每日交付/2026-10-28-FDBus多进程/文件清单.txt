@@ -36,10 +36,12 @@ scripts/run_demo.sh             双 worker 汇聚演示
 scripts/run_control_demo.sh     集中调级演示
 
 五、构建与说明
+.gitattributes                  固定交付副本文本与 Shell 脚本行尾
 CMakeLists.txt                  完整工程构建配置
 README.md                       包内构建与运行说明
 交付说明.md                      范围、变化、验证状态与已知问题
 文件清单.txt                     本文件
 SHA256SUMS.txt                  除自身外所有文件的 SHA-256
 
+总计 33 个文件；SHA256SUMS.txt 覆盖其余 32 个文件。
 说明：本包不包含第三方 FDBus 源码、Protobuf 生成文件、构建目录、运行日志和内部问题记录。
