@@ -18,7 +18,6 @@ constexpr int32_t kLevelControlCode = 0x4c470102;
 
 namespace detail {
 //进程内共享 FDBus 全局 context；首个使用者启动，最后一个使用者销毁。
-//FDBus 5.4 的 destroy() 不会复位单例指针，因此销毁后本进程不能再启动 context。
 bool acquireFdbusRuntime();
 void releaseFdbusRuntime();
 }
@@ -32,7 +31,7 @@ struct FdbusTargetConfig
     std::size_t queue_capacity;
     std::chrono::milliseconds request_timeout;
     std::chrono::milliseconds shutdown_timeout;
-    //队列是 worker 的数据容量；请求超时由唯一发送线程逐条应用。
+    //队列是 worker 的数据容量
     //shutdown_timeout 限制退出时等待本地队列发出的时间，超时后剩余记录计为丢弃。
     FdbusTargetConfig()
         : service_name("ipc_log_service"), queue_capacity(2048), request_timeout(2000)
@@ -109,11 +108,11 @@ public:
     LogServer(LogAggregator &aggregator,
               const LogServerConfig &config = LogServerConfig());
     ~LogServer();
-    //绑定服务成功返回 true；失败返回 false，构造时的非法配置会抛异常。
+    //绑定服务成功返回 true；失败返回 false
     bool start();
-    //等待在途控制回调并销毁 endpoint；日志排空由 aggregator.shutdown 完成。
+    //日志排空由 aggregator.shutdown 完成。
     void shutdown(std::chrono::milliseconds timeout);
-    //返回当前在线会话快照并异步查询各 worker 的进程实例与等级。
+    //返回当前在线会话快照并异步查询各worker的进程实例号与等级。
     std::vector<WorkerInfo> listWorkers(std::chrono::milliseconds timeout);
     //按进程实例查询；调用线程等待异步 worker reply，最长不超过 timeout。
     WorkerControlResult getWorkerLevel(uint64_t process_instance,

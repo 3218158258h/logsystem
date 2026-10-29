@@ -124,6 +124,7 @@ void readCommands(ipc_log::LogServer &server, ipc_log::ConsoleSink &console,
         descriptor.fd = STDIN_FILENO;
         descriptor.events = POLLIN;
         descriptor.revents = 0;
+        //100ms 超时让循环定期检查 stopping()；输入关闭后仍继续轮询等待退出。
         const int ready = ::poll(input_open ? &descriptor : 0,
                                  input_open ? 1 : 0, 100);
         if (ready < 0)
@@ -144,6 +145,7 @@ void readCommands(ipc_log::LogServer &server, ipc_log::ConsoleSink &console,
 
         char buffer[128];
         const ssize_t count = ::read(STDIN_FILENO, buffer, sizeof(buffer));
+        //EOF 只关闭命令输入，不结束服务；未完成行和超长行都明确丢弃。
         if (count == 0)
         {
             input_open = false;
@@ -163,6 +165,7 @@ void readCommands(ipc_log::LogServer &server, ipc_log::ConsoleSink &console,
                              std::strerror(errno));
             continue;
         }
+        //按字节累积到换行才执行；超长行进入丢弃状态，避免提交半条命令。
         for (ssize_t i = 0; i < count; ++i)
         {
             const char ch = buffer[i];
@@ -173,6 +176,7 @@ void readCommands(ipc_log::LogServer &server, ipc_log::ConsoleSink &console,
                                      std::to_string(max_line_bytes) + " bytes and was discarded");
                 else
                 {
+                    //去掉 Windows 换行残留的 \r 后，整行交给命令处理。
                     if (!line.empty() && line[line.size() - 1] == '\r') line.erase(line.size() - 1);
                     handleCommand(line, server, console, timeout);
                 }
@@ -228,7 +232,7 @@ int main(int argc, char **argv)
         logger_config.threshold = ipc_log_app::parseLevel(args.get("level", "INFO"));
         ipc_log::Logger logger(aggregator_target, logger_config);
         ipc_log::LogServer server(aggregator, server_config);
-        if (!server.start())
+        if (!server.start())//启动日志系统
             throw std::runtime_error("failed to bind FDBus log service");
         logger.info("log_server", "service bound at svc://" + server_config.service_name);
         printCommandLine(*console_sink,
@@ -236,7 +240,6 @@ int main(int argc, char **argv)
         const std::chrono::milliseconds control_timeout(args.number("control-timeout-ms", 2000));
         if (control_timeout.count() <= 0 || control_timeout.count() > 60000)
             throw std::invalid_argument("control timeout must be in 1..60000ms");
-        //命令 EOF 仅关闭 stdin 控制面；SIGINT/SIGTERM 才结束服务生命周期。
         readCommands(server, *console_sink, control_timeout);
 
         logger.info("log_server", "shutdown requested; draining worker and output queues");
