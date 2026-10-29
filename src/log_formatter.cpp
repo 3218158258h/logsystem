@@ -8,7 +8,6 @@ namespace ipc_log {
 
 namespace {
 //毫秒时间戳写成题目示例的可读形式 YYYY-MM-DD HH:MM:SS.mmm（本地时间）。
-//只在汇聚消费线程调用，与 LogFormatter::format 同一上下文，无并发写。
 void appendTimestamp(std::ostringstream &output, uint64_t timestamp_ms)
 {
     const std::time_t seconds = static_cast<std::time_t>(timestamp_ms / 1000);

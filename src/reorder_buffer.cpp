@@ -15,6 +15,7 @@ ReorderBuffer::ReorderBuffer(const ReorderConfig &config)
         throw std::invalid_argument("reorder capacity must be 1..65536 and idle release 1..60000ms");
 }
 
+//比较消息
 bool ReorderBuffer::Less::operator()(const LogRecord &left, const LogRecord &right) const
 {
     if (left.timestamp_ms != right.timestamp_ms) return left.timestamp_ms < right.timestamp_ms;
@@ -26,7 +27,7 @@ bool ReorderBuffer::Less::operator()(const LogRecord &left, const LogRecord &rig
     if (left.module != right.module) return left.module < right.module;
     return left.message < right.message;
 }
-
+//插入重排缓冲区
 void ReorderBuffer::add(const LogRecord &record)
 {
     //已释放水位之后到达的记录计为 late，但仍照常输出，不静默丢弃。
@@ -36,15 +37,16 @@ void ReorderBuffer::add(const LogRecord &record)
     last_arrival_ = std::chrono::steady_clock::now();
 }
 
+//尝试输出
 void ReorderBuffer::releaseReady(std::chrono::steady_clock::time_point now,
                                  bool force, std::vector<LogRecord> &released)
 {
-    //时间水位限制重排范围；空闲时间和容量上限防止输出停滞。
+    //时间水位限制重排范围；
     const bool idle = !records_.empty() && now - last_arrival_ >= config_.idle_release;
     const bool drain = force || idle;
     const uint64_t watermark = max_seen_timestamp_ > config_.window_ms ?
                                max_seen_timestamp_ - config_.window_ms : 0;
-    //容量溢出优先释放最早项；这保证内存有界，但对应时间序可能提前收敛。
+    //循环输出
     while (!records_.empty())
     {
         const bool over_capacity = records_.size() > config_.capacity;

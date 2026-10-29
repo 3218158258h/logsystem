@@ -1250,11 +1250,11 @@ bash scripts/run_demo.sh demo-b</code></pre>
 <!-- SLIDE 16: Class Diagram -->
 <div class="slide" data-layout="default">
     <div class="slide-header">
-        <div class="slide-title" contenteditable="true">核心类图｜从 API 到输出的分层</div>
+        <div class="slide-title" contenteditable="true">核心类图｜业务进程 ↔ 日志主进程</div>
         <div class="slide-divider"></div>
     </div>
     <div class="slide-body">
-        <svg viewBox="0 0 1070 610" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;width:100%;height:calc(100% - 24px);" font-family="'Microsoft YaHei','Noto Sans SC',sans-serif">
+        <svg viewBox="0 0 1400 740" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;width:100%;height:calc(100% - 24px);" font-family="'Microsoft YaHei','Noto Sans SC',sans-serif">
                 <defs>
                     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
                         <path d="M0,0 L10,5 L0,10 Z" fill="none" stroke="#64748B" stroke-width="1.3"/>
@@ -1269,90 +1269,102 @@ bash scripts/run_demo.sh demo-b</code></pre>
                         <path d="M5,0 L10,5 L5,10 L0,5 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="1.3"/>
                     </marker>
                 </defs>
+                <rect x="20" y="45" width="450" height="640" rx="12" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="8 4"/>
+                <text x="40" y="80" font-size="16" font-weight="700" fill="#475569">业务进程（worker：demo-a / demo-b）</text>
+                <rect x="680" y="45" width="700" height="640" rx="12" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="8 4"/>
+                <text x="700" y="80" font-size="16" font-weight="700" fill="#1E293B">日志主进程（log_server：svc://ipc_log_service）</text>
                 <g fill="none" stroke="#64748B" stroke-width="1.3">
-                    <line x1="270" y1="80" x2="299" y2="80" marker-end="url(#arr)"/>
-                    <line x1="150" y1="310" x2="150" y2="339" marker-end="url(#arr)"/>
-                    <line x1="420" y1="185" x2="420" y2="131" stroke-dasharray="5 4" marker-end="url(#tri)"/>
-                    <line x1="420" y1="295" x2="420" y2="339" marker-start="url(#diam)"/>
-                    <line x1="570" y1="80" x2="541" y2="80" stroke-dasharray="5 4" marker-end="url(#tri)"/>
-                    <path d="M570,128 L556,128 L556,380 L541,380" marker-start="url(#diam)"/>
-                    <line x1="690" y1="145" x2="690" y2="184" marker-start="url(#diam)"/>
-                    <path d="M810,128 L816,128 L816,376 L811,376" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-                    <line x1="810" y1="80" x2="839" y2="80" marker-start="url(#hdiam)"/>
-                    <path d="M570,535 L556,535 L556,110 L569,110" marker-end="url(#arr)"/>
-                    <line x1="570" y1="530" x2="541" y2="530" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-                    <line x1="955" y1="160" x2="955" y2="121" stroke-dasharray="5 4" marker-end="url(#tri)"/>
-                    <path d="M840,318 L826,318 L826,75 L839,75" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+                    <line x1="235" y1="145" x2="259" y2="145" marker-end="url(#arr)"/>
+                    <line x1="140" y1="205" x2="140" y2="249" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+                    <line x1="140" y1="370" x2="140" y2="409" marker-end="url(#arr)"/>
+                    <line x1="355" y1="235" x2="355" y2="186" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+                    <line x1="355" y1="355" x2="355" y2="394" marker-start="url(#diam)"/>
+                    <line x1="450" y1="275" x2="704" y2="275" marker-end="url(#arr)"/>
+                    <line x1="704" y1="315" x2="450" y2="315" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+                    <line x1="895" y1="285" x2="924" y2="285" marker-end="url(#arr)"/>
+                    <line x1="800" y1="355" x2="800" y2="394" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+                    <line x1="1020" y1="355" x2="1020" y2="394" marker-start="url(#diam)"/>
+                    <line x1="1115" y1="285" x2="1139" y2="285" marker-start="url(#diam)"/>
+                    <path d="M1115,310 L1128,310 L1128,400 L1139,400" marker-start="url(#hdiam)"/>
+                    <line x1="1235" y1="485" x2="1235" y2="441" stroke-dasharray="5 4" marker-end="url(#tri)"/>
+                    <path d="M1140,625 L1122,625 L1122,400 L1139,400" stroke-dasharray="5 4" marker-end="url(#tri)"/>
                 </g>
                 <g font-size="11" fill="#64748B">
-                    <text x="276" y="72">target_</text>
-                    <text x="556" y="380">queue_</text>
-                    <text x="816" y="376">format()</text>
-                    <text x="576" y="320">aggregator_</text>
-                    <text x="576" y="522">produces</text>
-                    <text x="158" y="326">level</text>
+                    <text x="240" y="137">target_</text>
+                    <text x="146" y="230">构造</text>
+                    <text x="146" y="392">level</text>
+                    <text x="357" y="375">queue_</text>
+                    <text x="480" y="267">数据面：LogRecord（上报）· LogReply（ACK）</text>
+                    <text x="480" y="330">控制面：LevelControlRequest / Reply</text>
+                    <text x="898" y="277">aggregator_</text>
+                    <text x="806" y="377">produces</text>
+                    <text x="1118" y="277">queue_</text>
                 </g>
                 <g>
-                    <rect x="30" y="30" width="240" height="115" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="44" y="56" font-size="15" font-weight="700" fill="#1E293B">Logger</text>
-                    <text x="44" y="80" font-size="12.5" fill="#475569">log(level, module, msg)</text>
-                    <text x="44" y="101" font-size="12.5" fill="#475569">setLevel() · stats()</text>
-                    <text x="44" y="122" font-size="11" fill="#94A3B8">threshold_(atomic)</text>
-                    <rect x="30" y="185" width="240" height="125" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="44" y="211" font-size="15" font-weight="700" fill="#1E293B">LogRecord</text>
-                    <text x="44" y="235" font-size="12.5" fill="#475569">timestamp_ms · level · pid</text>
-                    <text x="44" y="256" font-size="12.5" fill="#475569">module · message</text>
-                    <text x="44" y="277" font-size="12.5" fill="#475569">sequence · process_instance</text>
-                    <rect x="30" y="340" width="240" height="78" rx="8" fill="#FFF7F0" stroke="#ED7D31" stroke-width="1.5"/>
-                    <text x="44" y="366" font-size="15" font-weight="700" fill="#1E293B">«enum» LogLevel</text>
-                    <text x="44" y="390" font-size="12.5" fill="#475569">DEBUG · INFO · WARN · ERROR</text>
-                    <rect x="300" y="30" width="240" height="100" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
-                    <text x="314" y="56" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogTarget</text>
-                    <text x="314" y="80" font-size="12.5" fill="#475569">submit(LogRecord) : bool</text>
-                    <text x="314" y="101" font-size="12.5" fill="#475569">shutdown() · stats()</text>
-                    <rect x="300" y="185" width="240" height="110" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="314" y="211" font-size="15" font-weight="700" fill="#1E293B">FdbusLogTarget</text>
-                    <text x="314" y="235" font-size="12.5" fill="#475569">submit() · shutdown()</text>
-                    <text x="314" y="256" font-size="12.5" fill="#475569">attachLogger(Logger)</text>
-                    <text x="314" y="277" font-size="11" fill="#94A3B8">本地队列 + 发送线程</text>
-                    <rect x="300" y="340" width="240" height="92" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="314" y="366" font-size="15" font-weight="700" fill="#1E293B">BoundedQueue&lt;T&gt;</text>
-                    <text x="314" y="390" font-size="12.5" fill="#475569">tryPush() · waitPop()</text>
-                    <text x="314" y="411" font-size="12.5" fill="#475569">close()</text>
-                    <rect x="570" y="30" width="240" height="115" rx="8" fill="#FFFFFF" stroke="#4472C4" stroke-width="1.5"/>
-                    <text x="584" y="56" font-size="15" font-weight="700" fill="#1E293B">LogAggregator</text>
-                    <text x="584" y="80" font-size="12.5" fill="#475569">submit() · shutdown()</text>
-                    <text x="584" y="101" font-size="12.5" fill="#475569">run() · outputReady()</text>
-                    <text x="584" y="122" font-size="11" fill="#94A3B8">单消费线程</text>
-                    <rect x="570" y="185" width="240" height="95" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="584" y="211" font-size="15" font-weight="700" fill="#1E293B">ReorderBuffer</text>
-                    <text x="584" y="235" font-size="12.5" fill="#475569">add() · releaseReady()</text>
-                    <text x="584" y="256" font-size="11" fill="#94A3B8">窗口 50ms / 容量 4096</text>
-                    <rect x="570" y="340" width="240" height="78" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="584" y="366" font-size="15" font-weight="700" fill="#1E293B">LogFormatter</text>
-                    <text x="584" y="390" font-size="12.5" fill="#475569">format(LogRecord) : string</text>
-                    <rect x="570" y="490" width="240" height="105" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="584" y="516" font-size="15" font-weight="700" fill="#1E293B">LogServer</text>
-                    <text x="584" y="540" font-size="12.5" fill="#475569">start() · shutdown()</text>
-                    <text x="584" y="561" font-size="12.5" fill="#475569">listWorkers() · setWorkerLevel()</text>
-                    <text x="584" y="582" font-size="11" fill="#94A3B8">校验 + 会话管理</text>
-                    <rect x="300" y="490" width="240" height="95" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="314" y="516" font-size="15" font-weight="700" fill="#1E293B">WorkerInfo</text>
-                    <text x="314" y="540" font-size="12.5" fill="#475569">session_id · process_instance</text>
-                    <text x="314" y="561" font-size="12.5" fill="#475569">pid · level · status</text>
-                    <rect x="840" y="30" width="230" height="90" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
-                    <text x="854" y="56" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogSink</text>
-                    <text x="854" y="80" font-size="12.5" fill="#475569">write(level, line)</text>
-                    <text x="854" y="101" font-size="12.5" fill="#475569">flush()</text>
-                    <rect x="840" y="160" width="230" height="80" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="854" y="186" font-size="15" font-weight="700" fill="#1E293B">ConsoleSink</text>
-                    <text x="854" y="210" font-size="12.5" fill="#475569">ERROR→stderr · 其余→stdout</text>
-                    <rect x="840" y="280" width="230" height="80" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <text x="854" y="306" font-size="15" font-weight="700" fill="#1E293B">RotatingFileSink</text>
-                    <text x="854" y="330" font-size="12.5" fill="#475569">write() · rotate()</text>
+                    <rect x="45" y="100" width="190" height="105" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="59" y="126" font-size="15" font-weight="700" fill="#1E293B">Logger</text>
+                    <text x="59" y="150" font-size="12.5" fill="#475569">log() · setLevel()</text>
+                    <text x="59" y="172" font-size="12.5" fill="#475569">stats()</text>
+                    <text x="59" y="193" font-size="11" fill="#94A3B8">threshold_(atomic)</text>
+                    <rect x="45" y="250" width="190" height="120" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="59" y="276" font-size="15" font-weight="700" fill="#1E293B">LogRecord</text>
+                    <text x="59" y="300" font-size="12.5" fill="#475569">timestamp_ms · level · pid</text>
+                    <text x="59" y="321" font-size="12.5" fill="#475569">module · message</text>
+                    <text x="59" y="342" font-size="12.5" fill="#475569">sequence · instance</text>
+                    <rect x="45" y="410" width="190" height="70" rx="8" fill="#FFF7F0" stroke="#ED7D31" stroke-width="1.5"/>
+                    <text x="59" y="436" font-size="15" font-weight="700" fill="#1E293B">«enum» LogLevel</text>
+                    <text x="59" y="460" font-size="12.5" fill="#475569">DEBUG · INFO · WARN · ERROR</text>
+                    <rect x="260" y="100" width="190" height="85" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
+                    <text x="274" y="126" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogTarget</text>
+                    <text x="274" y="150" font-size="12.5" fill="#475569">submit() · shutdown()</text>
+                    <text x="274" y="171" font-size="12.5" fill="#475569">stats()</text>
+                    <rect x="260" y="235" width="190" height="120" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="274" y="261" font-size="15" font-weight="700" fill="#1E293B">FdbusLogTarget</text>
+                    <text x="274" y="285" font-size="12.5" fill="#475569">submit() · shutdown()</text>
+                    <text x="274" y="306" font-size="12.5" fill="#475569">attachLogger()</text>
+                    <text x="274" y="327" font-size="11" fill="#94A3B8">本地队列 + 发送线程</text>
+                    <rect x="260" y="395" width="190" height="85" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="274" y="421" font-size="15" font-weight="700" fill="#1E293B">BoundedQueue&lt;T&gt;</text>
+                    <text x="274" y="445" font-size="12.5" fill="#475569">tryPush() · waitPop()</text>
+                    <text x="274" y="466" font-size="12.5" fill="#475569">close()</text>
+                    <rect x="705" y="235" width="190" height="120" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="719" y="261" font-size="15" font-weight="700" fill="#1E293B">LogServer</text>
+                    <text x="719" y="285" font-size="12.5" fill="#475569">start() · shutdown()</text>
+                    <text x="719" y="306" font-size="12.5" fill="#475569">listWorkers() · setWorkerLevel()</text>
+                    <text x="719" y="327" font-size="11" fill="#94A3B8">校验 + 会话管理</text>
+                    <rect x="705" y="395" width="190" height="90" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="719" y="421" font-size="15" font-weight="700" fill="#1E293B">WorkerInfo</text>
+                    <text x="719" y="445" font-size="12.5" fill="#475569">session_id · process_instance</text>
+                    <text x="719" y="466" font-size="12.5" fill="#475569">pid · level · status</text>
+                    <rect x="925" y="235" width="190" height="120" rx="8" fill="#FFFFFF" stroke="#4472C4" stroke-width="1.5"/>
+                    <text x="939" y="261" font-size="15" font-weight="700" fill="#1E293B">LogAggregator</text>
+                    <text x="939" y="285" font-size="12.5" fill="#475569">submit() · shutdown()</text>
+                    <text x="939" y="306" font-size="12.5" fill="#475569">run() · outputReady()</text>
+                    <text x="939" y="327" font-size="11" fill="#94A3B8">单消费线程</text>
+                    <rect x="925" y="395" width="190" height="90" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="939" y="421" font-size="15" font-weight="700" fill="#1E293B">ReorderBuffer</text>
+                    <text x="939" y="445" font-size="12.5" fill="#475569">add() · releaseReady()</text>
+                    <text x="939" y="466" font-size="11" fill="#94A3B8">窗口50ms / 容量4096</text>
+                    <rect x="925" y="525" width="190" height="70" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="939" y="551" font-size="15" font-weight="700" fill="#1E293B">LogFormatter</text>
+                    <text x="939" y="575" font-size="12.5" fill="#475569">format(LogRecord)</text>
+                    <rect x="1140" y="235" width="190" height="80" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="1154" y="261" font-size="15" font-weight="700" fill="#1E293B">BoundedQueue&lt;T&gt;</text>
+                    <text x="1154" y="285" font-size="12.5" fill="#475569">tryPush() · waitPop()</text>
+                    <text x="1154" y="306" font-size="12.5" fill="#475569">close()</text>
+                    <rect x="1140" y="360" width="190" height="80" rx="8" fill="#EAF1FB" stroke="#4472C4" stroke-width="1.5" stroke-dasharray="6 3"/>
+                    <text x="1154" y="386" font-size="15" font-weight="700" font-style="italic" fill="#1E293B">«interface» ILogSink</text>
+                    <text x="1154" y="410" font-size="12.5" fill="#475569">write() · flush()</text>
+                    <rect x="1140" y="485" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="1154" y="511" font-size="15" font-weight="700" fill="#1E293B">ConsoleSink</text>
+                    <text x="1154" y="535" font-size="12.5" fill="#475569">ERROR→stderr · 其余→stdout</text>
+                    <rect x="1140" y="595" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+                    <text x="1154" y="621" font-size="15" font-weight="700" fill="#1E293B">RotatingFileSink</text>
+                    <text x="1154" y="645" font-size="12.5" fill="#475569">write() · rotate()</text>
                 </g>
+                <text x="470" y="705" font-size="12" fill="#94A3B8">共享定义（include/ipc_log，两端各自编译实例化）：LogRecord · LogLevel · ILogTarget · BoundedQueue&lt;T&gt;</text>
         </svg>
-        <div class="anchorline" style="position:absolute;bottom:0;left:0;right:0;">图码对应见 <code>docs/design.md</code>；类图依据 <code>include/ipc_log/*.h</code> 绘制。</div>
+        <div class="anchorline" style="position:absolute;bottom:0;left:0;right:0;">业务进程与日志主进程通过 FDBus（Protobuf 序列化）通信；共享类型定义见 <code>include/ipc_log/*.h</code>。</div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>16</div></div>
 </div>

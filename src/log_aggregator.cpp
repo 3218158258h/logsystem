@@ -32,6 +32,7 @@ LogAggregator::~LogAggregator()
     shutdown();
 }
 
+//接收一条消息入队
 bool LogAggregator::submit(LogRecord record)
 {
     //无锁快速拒绝；获取互斥锁后再检查一次，和 shutdown 的停止接收操作同步。
@@ -50,7 +51,7 @@ bool LogAggregator::submit(LogRecord record)
     const bool assign_sequence = record.sequence == 0;
     if (assign_sequence)
         record.sequence = next_sequence_;
-    if (!queue_.tryPush(std::move(record)))
+    if (!queue_.tryPush(std::move(record)))//入队
     {
         dropped_.fetch_add(1, std::memory_order_relaxed);
         return false;
@@ -60,6 +61,7 @@ bool LogAggregator::submit(LogRecord record)
     return true;
 }
 
+//不再接收新日志
 ShutdownResult LogAggregator::shutdown()
 {
     //消费线程不能 join 自己；这种调用直接报告未完成，由外部线程再次收尾。
@@ -85,8 +87,8 @@ ShutdownResult LogAggregator::shutdown()
         accepting_.store(false, std::memory_order_release);
     }
     stopping_.store(true, std::memory_order_release);
-    queue_.close();
-    if (thread_.joinable()) thread_.join();
+    queue_.close();//关队列
+    if (thread_.joinable()) thread_.join();//等待后台线程退出
 
     //消费者退出前已强制释放重排窗口并刷新两个 Sink，这里只汇总结果。
     ShutdownResult result;
@@ -96,6 +98,7 @@ ShutdownResult LogAggregator::shutdown()
     return result;
 }
 
+//提交各种计数
 TargetStats LogAggregator::stats() const
 {
     TargetStats result;
@@ -108,12 +111,13 @@ TargetStats LogAggregator::stats() const
     return result;
 }
 
+//消费线程主循环
 void LogAggregator::run()
 {
     LogRecord record;
     while (true)
     {
-        //有限等待让低流量日志也能在空闲释放期限后输出，而不要求新记录到达。
+        //有限等待
         if (!queue_.waitPopFor(record, idle_release_))
         {
             outputReady(false);
@@ -128,6 +132,8 @@ void LogAggregator::run()
     flushSinks();
 }
 
+//从重排缓冲区释放
+//先取出，再批量格式化，最后输出
 void LogAggregator::outputReady(bool force)
 {
     //排序释放和 Sink 写入只由消费线程执行。
