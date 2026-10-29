@@ -5,7 +5,6 @@
 #include "log_protocol.pb.h"
 
 #include <fdbus/CBaseClient.h>
-#include <fdbus/CFdbContext.h>
 #include <fdbus/CFdbMessage.h>
 #include <fdbus/CFdbProtoMsgBuilder.h>
 #include <fdbus/CFdbBaseObject.h>
@@ -18,37 +17,6 @@
 
 namespace ipc_log {
 
-namespace detail {
-namespace {
-std::mutex &runtimeMutex() { static std::mutex value; return value; }
-std::size_t &runtimeReferences() { static std::size_t value = 0; return value; }
-bool &runtimeDestroyed() { static bool value = false; return value; }
-}
-
-bool acquireFdbusRuntime()
-{
-    std::lock_guard<std::mutex> lock(runtimeMutex());
-    if (runtimeDestroyed()) return false;
-    if (runtimeReferences() == 0)
-    {
-        ipc::fdbus::CFdbContext::enableLogger(false);
-        if (!ipc::fdbus::CFdbContext::getInstance()->start()) return false;
-    }
-    ++runtimeReferences();
-    return true;
-}
-
-void releaseFdbusRuntime()
-{
-    std::lock_guard<std::mutex> lock(runtimeMutex());
-    if (runtimeReferences() == 0) return;
-    if (--runtimeReferences() == 0)
-    {
-        runtimeDestroyed() = true;
-        ipc::fdbus::CFdbContext::getInstance()->destroy();
-    }
-}
-}
 
 namespace {
 

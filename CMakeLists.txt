@@ -64,21 +64,22 @@ protobuf_generate_cpp(LOG_PROTOCOL_SOURCES LOG_PROTOCOL_HEADERS
 
 # Core stays independent of FDBus; the transport library is the only layer that links both SDKs.
 add_library(ipc_log_core
-    src/log_record.cpp
-    src/logger.cpp
-    src/log_formatter.cpp
-    src/console_sink.cpp
-    src/rotating_file_sink.cpp
-    src/reorder_buffer.cpp
-    src/log_aggregator.cpp)
+    src/common/log_record.cpp
+    src/common/logger.cpp
+    src/server/log_aggregator.cpp
+    src/server/reorder_buffer.cpp
+    src/sinks/log_formatter.cpp
+    src/sinks/console_sink.cpp
+    src/sinks/rotating_file_sink.cpp)
 target_include_directories(ipc_log_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(ipc_log_core PUBLIC Threads::Threads)
 
 add_library(ipc_log_transport
     ${LOG_PROTOCOL_SOURCES}
     ${LOG_PROTOCOL_HEADERS}
-    src/fdbus_transport.cpp
-    src/log_server.cpp)
+    src/common/fdbus_runtime.cpp
+    src/client/fdbus_transport.cpp
+    src/server/log_server.cpp)
 add_dependencies(ipc_log_transport fdbus_external)
 target_include_directories(ipc_log_transport PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
