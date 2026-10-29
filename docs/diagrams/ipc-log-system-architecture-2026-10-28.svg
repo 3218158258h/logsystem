@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="1180" viewBox="0 0 1640 1180">
+<title>IPC日志系统架构图</title>
+<desc>架构按进程和模块归属组织。业务侧多个进程各有Logger和FdbusLogTarget，与日志主进程直接通过FDBus通信。name_server仅承担注册与发现。日志主进程包含控制面、通信适配、日志核心和显示输出面。没有处理步骤或跨进程flush协议。</desc>
+<rect width="1640" height="1180" fill="#f5f7fb"/>
+<text x="54" y="57" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="44" font-weight="600" fill="#24354b">IPC 日志系统架构图</text>
+<text x="56" y="108" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" fill="#62748b">进程边界 · 模块归属 · 通信关系</text>
+<text x="1490" y="64" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#62748b">2026-10-28</text>
+<rect x="515" y="148" width="610" height="116" rx="16" fill="#eef1f6" stroke="#b5c0cf" stroke-width="2"/>
+<text x="820" y="176" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#62748b">基础设施 · 独立进程</text>
+<text x="820" y="218" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="30" font-weight="600" fill="#24354b">name_server  /  服务注册与发现</text>
+<rect x="54" y="350" width="550" height="660" rx="16" fill="#edf3ff" stroke="#a6bcdf" stroke-width="2"/>
+<text x="82" y="388" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="30" font-weight="600" fill="#24354b">业务侧 · 多进程部署</text>
+<rect x="82" y="430" width="494" height="237" rx="16" fill="#ffffff" stroke="#c8d6eb" stroke-width="2"/>
+<text x="104" y="462" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">业务进程 A  /  demo-a</text>
+<rect x="100" y="495" width="205" height="127" rx="10" fill="#f0f5fe" stroke="#d7e1f0" stroke-width="2"/>
+<text x="202" y="533" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="600" fill="#24354b">Logger</text>
+<text x="202" y="578" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">独立等级阈值</text>
+<rect x="322" y="495" width="236" height="127" rx="10" fill="#f0f5fe" stroke="#d7e1f0" stroke-width="2"/>
+<text x="440" y="525" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="600" fill="#24354b">FdbusLogTarget</text>
+<text x="440" y="563" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">本地有界队列</text>
+<text x="440" y="596" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">后台发送线程</text>
+<text x="104" y="643" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#62748b">业务调用 API；SDK 管理连接与回调</text>
+<rect x="82" y="697" width="494" height="237" rx="16" fill="#ffffff" stroke="#c8d6eb" stroke-width="2"/>
+<text x="104" y="729" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">业务进程 B  /  demo-b</text>
+<rect x="100" y="762" width="205" height="127" rx="10" fill="#f0f5fe" stroke="#d7e1f0" stroke-width="2"/>
+<text x="202" y="800" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="28" font-weight="600" fill="#24354b">Logger</text>
+<text x="202" y="845" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">独立等级阈值</text>
+<rect x="322" y="762" width="236" height="127" rx="10" fill="#f0f5fe" stroke="#d7e1f0" stroke-width="2"/>
+<text x="440" y="792" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="600" fill="#24354b">FdbusLogTarget</text>
+<text x="440" y="830" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">本地有界队列</text>
+<text x="440" y="863" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">后台发送线程</text>
+<text x="104" y="910" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#62748b">每个目标分别持有队列与发送线程</text>
+<text x="82" y="978" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#48668e">独立示例工程，可替换为真实业务</text>
+<rect x="870" y="350" width="716" height="660" rx="16" fill="#ffffff" stroke="#99b1c8" stroke-width="2"/>
+<text x="898" y="388" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="30" font-weight="600" fill="#24354b">日志主进程 · log_server</text>
+<rect x="898" y="430" width="660" height="104" rx="12" fill="#f1f5f9" stroke="#d6dfe9" stroke-width="2"/>
+<text x="920" y="461" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">控制面 · 命令台</text>
+<text x="920" y="502" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="25" font-weight="400" fill="#24354b">list  /  get-level  /  set-level</text>
+<rect x="898" y="550" width="660" height="100" rx="12" fill="#eef5fc" stroke="#d0dfed" stroke-width="2"/>
+<text x="920" y="580" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">通信与控制适配 · LogServer</text>
+<text x="920" y="620" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">FDBus 端点 · 会话管理 · 日志校验 · 定向调级</text>
+<rect x="898" y="666" width="660" height="166" rx="12" fill="#f1f7f4" stroke="#cedfd5" stroke-width="2"/>
+<text x="920" y="698" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">日志核心 · LogAggregator</text>
+<text x="920" y="737" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#24354b">共享有界汇聚队列 · 单消费线程</text>
+<rect x="918" y="770" width="299" height="45" rx="8" fill="#ffffff" stroke="#d5e3db" stroke-width="1"/>
+<text x="1068" y="793" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">ReorderBuffer 重排缓存</text>
+<rect x="1231" y="770" width="307" height="45" rx="8" fill="#ffffff" stroke="#d5e3db" stroke-width="1"/>
+<text x="1385" y="793" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">LogFormatter 格式化</text>
+<rect x="898" y="848" width="660" height="138" rx="12" fill="#f6f3fa" stroke="#ded5e8" stroke-width="2"/>
+<text x="920" y="878" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="27" font-weight="600" fill="#24354b">显示与输出面</text>
+<rect x="918" y="907" width="299" height="61" rx="8" fill="#ffffff" stroke="#e4ddeb" stroke-width="1"/>
+<text x="1068" y="925" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="600" fill="#24354b">ConsoleSink</text>
+<text x="1068" y="953" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#24354b">终端输出</text>
+<rect x="1231" y="907" width="307" height="61" rx="8" fill="#ffffff" stroke="#e4ddeb" stroke-width="1"/>
+<text x="1385" y="925" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="600" fill="#24354b">RotatingFileSink</text>
+<text x="1385" y="953" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="21" font-weight="400" fill="#24354b">轮转日志文件</text>
+<polyline points="600,264 600,302 329,302 329,350" fill="none" stroke="#8998aa" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polyline points="1040,264 1040,302 1228,302 1228,350" fill="none" stroke="#8998aa" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<text x="350" y="281" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">SDK 服务发现</text>
+<text x="1246" y="281" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">SDK 服务登记</text>
+<polyline points="558,558 632,558 632,580 898,580" fill="none" stroke="#3566a8" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="558,825 632,825 632,620 898,620" fill="none" stroke="#3566a8" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="558" cy="558" r="5" fill="#ffffff" stroke="#3566a8" stroke-width="2"/>
+<circle cx="898" cy="580" r="5" fill="#ffffff" stroke="#3566a8" stroke-width="2"/>
+<circle cx="558" cy="825" r="5" fill="#ffffff" stroke="#3566a8" stroke-width="2"/>
+<circle cx="898" cy="620" r="5" fill="#ffffff" stroke="#3566a8" stroke-width="2"/>
+<text x="746" y="693" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="600" fill="#24354b">FDBus 直连会话</text>
+<text x="746" y="731" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">日志 · ACK</text>
+<text x="746" y="769" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#24354b">等级控制 · 应答</text>
+<text x="746" y="807" text-anchor="middle" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="22" font-weight="400" fill="#62748b">Protobuf 消息</text>
+<polyline points="56,1058 123,1058" fill="none" stroke="#8998aa" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<text x="140" y="1058" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">服务注册 / 发现</text>
+<polyline points="518,1058 585,1058" fill="none" stroke="#3566a8" stroke-width="3" stroke-linejoin="round"/>
+<text x="602" y="1058" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">跨进程业务连接</text>
+<rect x="1034" y="1047" width="26" height="22" rx="4" fill="#ffffff" stroke="#99b1c8" stroke-width="2"/>
+<text x="1077" y="1058" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">框：进程与模块归属</text>
+<text x="56" y="1116" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="400" fill="#62748b">库复用：业务侧与服务侧链接 ipc_log_core / ipc_log_transport；示例独立构建。</text>
+<text x="56" y="1153" text-anchor="start" dominant-baseline="central" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="23" font-weight="400" fill="#62748b">当前结构：共享汇聚缓存；无跨进程 flush 协议，关闭时由各目标内部排空。</text>
+</svg>

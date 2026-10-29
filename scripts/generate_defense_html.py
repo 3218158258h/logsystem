@@ -117,7 +117,7 @@ SLIDES_HTML = r"""
             </div>
         </div>
         <div class="control-strip"><strong>控制面</strong><span>命令行 → LogServer → FDBus 定向请求 → 指定 worker 更新 / 查询等级 → 应用层应答</span><code>list · get-level · set-level</code></div>
-        <div class="anchorline">图码锚点：<code>src/fdbus_transport.cpp</code> · <code>src/log_server.cpp</code> · <code>apps/log_server_main.cpp</code></div>
+        <div class="anchorline">图码锚点：<code>src/client/fdbus_transport.cpp</code> · <code>src/server/log_server.cpp</code> · <code>apps/log_server_main.cpp</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>04</div></div>
 </div>
@@ -143,7 +143,7 @@ SLIDES_HTML = r"""
             <div class="journey-step"><span class="step-no">06</span><strong>排序与输出</strong><p>有限窗口排序，写入两个 Sink。</p><small>终端 + 轮转文件</small></div>
         </div>
         <div class="journey-result"><span>关键分层</span> 生产线程只做过滤、构造与有界入队；发送和输出工作由后台路径完成。</div>
-        <div class="anchorline">入口：<code>src/logger.cpp::Logger::log</code> · <code>src/fdbus_transport.cpp::FdbusLogTarget::run</code> · <code>src/log_server.cpp::handleRecord</code></div>
+        <div class="anchorline">入口：<code>src/common/logger.cpp::Logger::log</code> · <code>src/client/fdbus_transport.cpp::FdbusLogTarget::run</code> · <code>src/server/log_server.cpp::handleRecord</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>05</div></div>
 </div>
@@ -200,7 +200,7 @@ SLIDES_HTML = r"""
                 <div class="callout">跨机延迟、重连、部署与安全运维：作为方案分析，不声称已验证。</div>
             </div>
         </div>
-        <div class="anchorline">图码锚点：<code>src/fdbus_transport.cpp</code> · <code>src/log_server.cpp::onInvoke</code> · <code>proto/log_protocol.proto</code></div>
+        <div class="anchorline">图码锚点：<code>src/client/fdbus_transport.cpp</code> · <code>src/server/log_server.cpp::onInvoke</code> · <code>proto/log_protocol.proto</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>07</div></div>
 </div>
@@ -228,7 +228,7 @@ set-level &lt;process_instance&gt; WARN</code></pre>
             </div>
         </div>
         <div class="callout callout-blue">独立调级只影响之后的日志过滤；已经进入队列的记录继续走原有发送和输出链路。</div>
-        <div class="anchorline">图码锚点：<code>src/log_server.cpp::resolveSession / setWorkerLevel</code> · <code>src/fdbus_transport.cpp::onControlInvoke</code> · <code>src/logger.cpp::setLevel</code></div>
+        <div class="anchorline">图码锚点：<code>src/server/log_server.cpp::resolveSession / setWorkerLevel</code> · <code>src/client/fdbus_transport.cpp::onControlInvoke</code> · <code>src/common/logger.cpp::setLevel</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>08</div></div>
 </div>
@@ -257,7 +257,7 @@ set-level &lt;process_instance&gt; WARN</code></pre>
                 <div class="sink-pair"><div><strong>stdout / stderr</strong><small>ConsoleSink</small></div><div><strong>按大小轮转</strong><small>RotatingFileSink</small></div></div>
             </div>
         </div>
-        <div class="anchorline">排序：<code>src/reorder_buffer.cpp::releaseReady</code> · 格式：<code>src/log_formatter.cpp</code> · 输出：<code>src/console_sink.cpp</code> / <code>src/rotating_file_sink.cpp</code></div>
+        <div class="anchorline">排序：<code>src/server/reorder_buffer.cpp::releaseReady</code> · 格式：<code>src/sinks/log_formatter.cpp</code> · 输出：<code>src/sinks/console_sink.cpp</code> / <code>src/sinks/rotating_file_sink.cpp</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>09</div></div>
 </div>
@@ -279,7 +279,7 @@ set-level &lt;process_instance&gt; WARN</code></pre>
             <div class="boundary-card"><strong>已移除业务触发的跨进程 FlushRequest</strong><p>排空责任留在 worker / log_server 的生命周期关闭流程内；业务代码不需要发起 flush 控制命令。</p></div>
             <div class="boundary-card warning"><strong>flush 不等于掉电安全</strong><p>只覆盖已进入相应队列的记录；传输中、进程崩溃或强制终止仍可能丢失。流刷新不等于 fsync。</p></div>
         </div>
-        <div class="anchorline">图码锚点：<code>src/fdbus_transport.cpp::shutdown</code> · <code>src/log_server.cpp::shutdown</code> · <code>src/log_aggregator.cpp::shutdown</code></div>
+        <div class="anchorline">图码锚点：<code>src/client/fdbus_transport.cpp::shutdown</code> · <code>src/server/log_server.cpp::shutdown</code> · <code>src/server/log_aggregator.cpp::shutdown</code></div>
     </div>
     <div class="slide-footer"><div>HJM-fast · IPC 日志系统</div><div>10</div></div>
 </div>

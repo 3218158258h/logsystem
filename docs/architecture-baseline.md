@@ -26,14 +26,14 @@
 | 模块 | 职责与边界 | 建议落点 |
 |---|---|---|
 | LogRecord / LogLevel | 统一记录字段和四级枚举；入队后记录不可变 | `include/ipc_log/log_record.h` |
-| Logger | 进程独立的原子等级阈值；过滤、采集时间/PID、构造记录；调用目标的非阻塞入队接口 | `include/ipc_log/logger.h`、`src/logger.cpp` |
+| Logger | 进程独立的原子等级阈值；过滤、采集时间/PID、构造记录；调用目标的非阻塞入队接口 | `include/ipc_log/logger.h`、`src/common/logger.cpp` |
 | ILogTarget | 统一 submit、shutdown、stats 契约，使 Logger 不直接依赖 FDBus 或文件实现 | `include/ipc_log/log_target.h` |
 | BoundedQueue | 短临界区、多生产者、单消费者；容量限制、关闭唤醒；记录与控制屏障有序进入 | `include/ipc_log/async_queue.h` |
-| FdbusLogTarget | worker 使用：队列 + 一个后台发送线程；序列化、连接状态、在途请求与确认 | `src/fdbus_transport.cpp` |
-| LogServer | FDBus CBaseServer 适配；校验消息、非阻塞入队、返回接收状态；不在回调中写文件 | `src/log_server.cpp` |
-| LogAggregator | 主进程的 ILogTarget；本地与远端进入同一有界队列；一个消费线程负责重排、输出和退出排空 | `src/log_aggregator.cpp` |
-| ReorderBuffer | 按时间戳和稳定键排序；时间窗口、空闲释放和容量上限 | `src/reorder_buffer.cpp` |
-| LogFormatter / Sink | 最终格式化；ConsoleSink 与 RotatingFileSink；刷新及写入错误报告 | `src/log_formatter.cpp`、`console_sink.cpp`、`rotating_file_sink.cpp` |
+| FdbusLogTarget | worker 使用：队列 + 一个后台发送线程；序列化、连接状态、在途请求与确认 | `src/client/fdbus_transport.cpp` |
+| LogServer | FDBus CBaseServer 适配；校验消息、非阻塞入队、返回接收状态；不在回调中写文件 | `src/server/log_server.cpp` |
+| LogAggregator | 主进程的 ILogTarget；本地与远端进入同一有界队列；一个消费线程负责重排、输出和退出排空 | `src/server/log_aggregator.cpp` |
+| ReorderBuffer | 按时间戳和稳定键排序；时间窗口、空闲释放和容量上限 | `src/server/reorder_buffer.cpp` |
+| LogFormatter / Sink | 最终格式化；ConsoleSink 与 RotatingFileSink；刷新及写入错误报告 | `src/sinks/log_formatter.cpp`、`console_sink.cpp`、`rotating_file_sink.cpp` |
 | 应用入口 | 装配对象、信号退出和进程启动顺序 | `apps/log_server_main.cpp`、`scripts/run_server.sh` |
 | 示例工程 | 独立 CMake 工程：读取终端输入调用日志库，打印自身实例号 | `examples/fdbus-console-demo/`、`scripts/run_demo.sh` |
 

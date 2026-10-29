@@ -73,13 +73,13 @@ include/ipc_log/log_target.h
 include/ipc_log/logger.h
 include/ipc_log/reorder_buffer.h
 include/ipc_log/sink.h
-src/console_sink.cpp
-src/log_aggregator.cpp
-src/log_formatter.cpp
-src/log_record.cpp
-src/logger.cpp
-src/reorder_buffer.cpp
-src/rotating_file_sink.cpp
+src/sinks/console_sink.cpp
+src/server/log_aggregator.cpp
+src/sinks/log_formatter.cpp
+src/common/log_record.cpp
+src/common/logger.cpp
+src/server/reorder_buffer.cpp
+src/sinks/rotating_file_sink.cpp
 ```
 
 这些文件使用的标准库和 Threads 不要求 FDBus/Protobuf；LocalLogTarget 复用 LogAggregator，所以后者与排序器属于当前依赖闭包，不能仅按名字删除。
@@ -290,13 +290,13 @@ R8/R9 复核期间未修改主项目源码；当时保留初始包并新建 `202
 
 | 日报成果 | 修订包代码入口 | 本轮证据与结论 |
 |---|---|---|
-| 四级过滤与等级调整 | `include/ipc_log/log_record.h:10`；`src/logger.cpp:22,33`；`apps/app_support.h:72` | 源码含 DEBUG/INFO/WARN/ERROR、阈值过滤和实例 setLevel；静态对应，运行效果待 Ubuntu。 |
-| 时间戳、等级、PID、模块、正文格式 | `include/ipc_log/log_record.h:25-43`；`src/log_record.cpp:32`；`src/log_formatter.cpp:32-43` | 记录字段、毫秒时间和固定输出格式可见；只做源码核对。 |
-| 有界异步队列和丢弃计数 | `include/ipc_log/async_queue.h:15-36`；`src/log_aggregator.cpp:37-68` | 队列容量受限，队列满时计数 dropped；静态核对。 |
-| 有限窗口排序 | `include/ipc_log/reorder_buffer.h:15-31`；`src/reorder_buffer.cpp:30-57` | 水位窗口、空闲释放和容量兜底；不承诺严格全序，待运行专项复验。 |
-| 控制台输出与格式化 | `src/console_sink.cpp:8`；`src/log_formatter.cpp:32` | stdout/stderr sink 和固定格式入口存在；静态核对。 |
-| 按大小轮转文件 | `src/rotating_file_sink.cpp:88,121`；`include/ipc_log/sink.h:43-48` | 轮转与有界备份实现存在；边界运行待验证。 |
-| 正常 flush | `src/log_aggregator.cpp:75-132,137-146,183-196` | 队列屏障强制排空排序缓存并刷新 Sink；stream flush 不等同 fsync。运行待验证。 |
+| 四级过滤与等级调整 | `include/ipc_log/log_record.h:10`；`src/common/logger.cpp:22,33`；`apps/app_support.h:72` | 源码含 DEBUG/INFO/WARN/ERROR、阈值过滤和实例 setLevel；静态对应，运行效果待 Ubuntu。 |
+| 时间戳、等级、PID、模块、正文格式 | `include/ipc_log/log_record.h:25-43`；`src/common/log_record.cpp:32`；`src/sinks/log_formatter.cpp:32-43` | 记录字段、毫秒时间和固定输出格式可见；只做源码核对。 |
+| 有界异步队列和丢弃计数 | `include/ipc_log/async_queue.h:15-36`；`src/server/log_aggregator.cpp:37-68` | 队列容量受限，队列满时计数 dropped；静态核对。 |
+| 有限窗口排序 | `include/ipc_log/reorder_buffer.h:15-31`；`src/server/reorder_buffer.cpp:30-57` | 水位窗口、空闲释放和容量兜底；不承诺严格全序，待运行专项复验。 |
+| 控制台输出与格式化 | `src/sinks/console_sink.cpp:8`；`src/sinks/log_formatter.cpp:32` | stdout/stderr sink 和固定格式入口存在；静态核对。 |
+| 按大小轮转文件 | `src/sinks/rotating_file_sink.cpp:88,121`；`include/ipc_log/sink.h:43-48` | 轮转与有界备份实现存在；边界运行待验证。 |
+| 正常 flush | `src/server/log_aggregator.cpp:75-132,137-146,183-196` | 队列屏障强制排空排序缓存并刷新 Sink；stream flush 不等同 fsync。运行待验证。 |
 | 本地多生产者演示 | `apps/local_log_demo.cpp:15-63` | README 参数与入口对应；历史整项目输出不计作本修订包构建证据。 |
 | 注释、构建说明与校验 | `apps/app_support.h`；包内 `README.md`、`CMakeLists.txt`、`交付说明.md`、`文件清单.txt`、`SHA256SUMS.txt` | 修订包的 18 个源码均与根目录哈希一致；包内 23 条哈希逐项通过。 |
 
@@ -324,7 +324,7 @@ R8/R9 复核期间未修改主项目源码；当时保留初始包并新建 `202
 
 ### 文件范围与执行规则
 
-- 主项目修改范围：`include/ipc_log/async_queue.h`、`log_target.h`、`log_aggregator.h`、`fdbus_transport.h`，对应 `src/log_aggregator.cpp`、`logger.cpp`、`rotating_file_sink.cpp`、`log_server.cpp`、`fdbus_transport.cpp`，`apps/app_support.h`、三个应用入口及两个演示脚本；仅改具体问题需要的文件。
+- 主项目修改范围：`include/ipc_log/async_queue.h`、`log_target.h`、`log_aggregator.h`、`fdbus_transport.h`，对应 `src/server/log_aggregator.cpp`、`logger.cpp`、`rotating_file_sink.cpp`、`log_server.cpp`、`fdbus_transport.cpp`，`apps/app_support.h`、三个应用入口及两个演示脚本；仅改具体问题需要的文件。
 - 验证建议集中于 `tests/core_regression.cpp`、`tests/script_regression.sh`、`tests/transport_regression.sh`，在现有 CMake 中按需接入测试目标。这些是待创建文件，不当成现有成果；不用引入第三方测试框架、通用调度层或大量镜像实现的测试。
 - 按任务逐项完成“复核触发条件 → 建立针对性失败用例 → 最小修复 → 运行同一用例 → 记录结果”。若审查发现与实际不符，用源码/运行证据纠正结论，不为迎合审查强改。
 - 先修主项目，再生成阶段快照；不在快照内另开发，不覆盖已有包，不改第三方或生成文件，不自动提交或推送。

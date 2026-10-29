@@ -38,7 +38,7 @@ A级图文、接口说明、图码对应和答辩 PPT 仍按第四天计划准�
 
 ### F1 [P1] 关闭时可能跳过已接受、尚在 FIFO 的日志
 
-位置：[src/log_aggregator.cpp:170](../src/log_aggregator.cpp#L170)，重点 170–174；关闭队列在 146–149，退出末尾在 208–209。
+位置：[src/server/log_aggregator.cpp:170](../src/server/log_aggregator.cpp#L170)，重点 170–174；关闭队列在 146–149，退出末尾在 208–209。
 
 可触发时序：
 
@@ -56,7 +56,7 @@ A级图文、接口说明、图码对应和答辩 PPT 仍按第四天计划准�
 
 ### F2 [P2] 字节截断会破坏合法中文 UTF-8
 
-位置：[src/logger.cpp:54](../src/logger.cpp#L54)，54–55；proto/log_protocol.proto 的 module/message 为 string。
+位置：[src/common/logger.cpp:54](../src/common/logger.cpp#L54)，54–55；proto/log_protocol.proto 的 module/message 为 string。
 
 默认上限下，43 个“中”为 129 字节，截到 128 后末尾是不完整编码；1366 个“中”为 4098 字节，截到 4096 同样破坏编码。
 
@@ -80,7 +80,7 @@ A级图文、接口说明、图码对应和答辩 PPT 仍按第四天计划准�
 
 ### F4 [P2] 尚未实际绑定，就宣布服务启动成功
 
-位置：[src/log_server.cpp:167](../src/log_server.cpp#L167)，167–183；apps/log_server_main.cpp:239–242。
+位置：[src/server/log_server.cpp:167](../src/server/log_server.cpp#L167)，167–183；apps/log_server_main.cpp:239–242。
 
 触发：重复启动相同服务名，或 name_server 尚不可用。当前 start 发起异步 bind 后立即返回 true，应用打印 bound/listening；实际登记可能失败。
 
@@ -92,7 +92,7 @@ A级图文、接口说明、图码对应和答辩 PPT 仍按第四天计划准�
 
 ### F5 [P2，次要边界] 已有文件可写不可读时，轮转漏算原有大小
 
-位置：[src/rotating_file_sink.cpp:62](../src/rotating_file_sink.cpp#L62)，62–64。
+位置：[src/sinks/rotating_file_sink.cpp:62](../src/sinks/rotating_file_sink.cpp#L62)，62–64。
 
 触发：Linux 上已有日志文件对当前用户仅可写不可读。ifstream 获取大小失败，current_bytes 留为 0；append 打开却能成功，已有文件内容没有计入阈值。
 
@@ -110,7 +110,7 @@ number 使用 strtoull，仅检查 errno 和尾随字符，没有拒绝负号。
 
 ### F7 [P3] 退出收尾重复发送 flush
 
-位置：[apps/log_worker_main.cpp:51](../apps/log_worker_main.cpp#L51) 与 57；[src/fdbus_transport.cpp:346](../src/fdbus_transport.cpp#L346)。本地演示也先显式 flush 再 shutdown。
+位置：[apps/log_worker_main.cpp:51](../apps/log_worker_main.cpp#L51) 与 57；[src/client/fdbus_transport.cpp:346](../src/client/fdbus_transport.cpp#L346)。本地演示也先显式 flush 再 shutdown。
 
 影响：退出重复屏障及等待，检查的是第一次结果而关闭内部再次 flush 的结果被忽略。不是平时频繁 flush，也不是必需功能缺失。
 
@@ -118,7 +118,7 @@ number 使用 strtoull，仅检查 errno 和尾随字符，没有拒绝负号。
 
 ### F8 [P3，当前演示未触发] 异步完成回调缺少重入约束
 
-位置：[src/log_aggregator.cpp:201](../src/log_aggregator.cpp#L201)，201–204；shutdown 的 join 在 149。
+位置：[src/server/log_aggregator.cpp:201](../src/server/log_aggregator.cpp#L201)，201–204；shutdown 的 join 在 149。
 
 flushAsync 回调运行在汇聚消费线程。外部调用者若在回调内同步 flush，会等待自己；若调用 shutdown，则超时后可能 self-join 抛错，异常被吞后线程仍 joinable，后续析构可能 terminate。
 

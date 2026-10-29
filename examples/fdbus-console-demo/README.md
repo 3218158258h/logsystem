@@ -1,7 +1,5 @@
 # FDBus 控制台日志示例
 
-本目录是独立示例工程，不属于日志系统的产品代码。产品工程只构建 `log_server`；本示例用自己的 CMakeLists 通过 `add_subdirectory` 引入日志系统，只链接 `ipc_log_transport`，演示两个业务进程如何：
-
 - 持续从终端读取日志并调用日志库；
 - 经 FDBus 把日志送到 log_server；
 - 接受 log_server 的集中等级控制。

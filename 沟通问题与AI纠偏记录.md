@@ -54,7 +54,7 @@
 - 日期：记录日期 2026-10-27；功能需求演进日期未单独核实。
 - 分类：需求覆盖不足。
 - 现象与用户反馈：早期本地 demo 使用 `Logger::setLevel` 展示运行时改级；用户指出当前目标是 FDBus 多进程系统。之后集中控制实现加入 worker 查询/设置协议和 server 控制命令。
-- 证据：当前 `proto/log_protocol.proto` 的 `LevelControlRequest/Reply`，`src/fdbus_transport.cpp` 的 `onControlInvoke`，`src/log_server.cpp` 的 `startControl/onReply/onStatus`，`apps/log_server_main.cpp` 的命令解析；用户报告 `run_control_demo.sh` 输出 `Central level-control commands are in logs/log_server.console`。
+- 证据：当前 `proto/log_protocol.proto` 的 `LevelControlRequest/Reply`，`src/client/fdbus_transport.cpp` 的 `onControlInvoke`，`src/server/log_server.cpp` 的 `startControl/onReply/onStatus`，`apps/log_server_main.cpp` 的命令解析；用户报告 `run_control_demo.sh` 输出 `Central level-control commands are in logs/log_server.console`。
 - 原建议或实现：本地 `setLevel` 只验证 Logger 阈值变化，不覆盖跨进程命令链路。
 - 根因：演示覆盖层级不足，不能把本地单进程结果当成集中控制验收。
 - 处理方式：补上 `list/get-level/set-level` 命令、worker FDBus 回调和应用级确认；脚本逐项检查两个实例的设定和查询结果。
@@ -142,11 +142,11 @@
 
 | 编号 | 改动 | 涉及文件/函数 | 修改理由 |
 |---|---|---|---|
-| 1 | 两份几乎相同的 FDBus 运行时引用计数合并为 `detail::acquireFdbusRuntime()` / `releaseFdbusRuntime()`，删除 `FdbusRuntime` 与 `ServerFdbusRuntime` 两个类 | `src/fdbus_transport.cpp:28`、`include/ipc_log/fdbus_transport.h:22`、`src/log_server.cpp:126` | 同一套 `FDB_CONTEXT` 启停逻辑写了两遍；合并后保留“SDK `destroy()` 不重置 `mInstance`，销毁后不能重启”的标记 |
-| 2 | Sink 接口改为 `write(LogLevel, line)`，按等级选流，不再从格式化字符串反解等级 | `include/ipc_log/sink.h`、`src/console_sink.cpp`、`src/rotating_file_sink.cpp`、`src/log_aggregator.cpp` `outputReady`、`apps/log_server_main.cpp` `printCommandLine` | 原来靠字符串前缀判断 ERROR 走 stderr，属于隐式约定，格式一改就错 |
-| 3 | 抽出 `LogServer::resolveSession(process_instance, deadline)`；`getWorkerLevel` 改为本地扫描后只对目标会话发一次 GET，不再先查询全部 worker；`setWorkerLevel` 复用同一函数 | `src/log_server.cpp:609`、`:229`、`:274` | 两处重复的“扫描 + 发现 + 匹配”逻辑；get-level 原实现会对每个 worker 都发一次请求 |
-| 4 | 字段上限集中为 `kMaxModuleBytes` / `kMaxMessageBytes`，`LoggerConfig` 不再携带每实例上限；删除 `Logger` 构造校验、`LogAggregator::submit` 与 `FdbusLogTarget::submit` 的重复记录校验；保留服务端线上数据的 `validateRecord` | `include/ipc_log/log_record.h`、`include/ipc_log/logger.h`、`src/logger.cpp`、`src/log_server.cpp` `validateRecord` | 同一约束在三处重复且可配置漂移；信任边界只应保留在进程入口 |
-| 5 | `ILogTarget::shutdown` / `LogAggregator::shutdown` / `FdbusLogTarget::shutdown` 统一返回 `FlushResult`；应用入口删除显式 `flush` 后再 `shutdown` 的重复收尾 | `include/ipc_log/log_target.h:69-71`、`src/log_aggregator.cpp`、`src/fdbus_transport.cpp`、`apps/log_worker_main.cpp`、`apps/local_log_demo.cpp` | 与 F7 同一处问题，一次改完；退出码现在对应同一次收尾结果 |
+| 1 | 两份几乎相同的 FDBus 运行时引用计数合并为 `detail::acquireFdbusRuntime()` / `releaseFdbusRuntime()`，删除 `FdbusRuntime` 与 `ServerFdbusRuntime` 两个类 | `src/client/fdbus_transport.cpp:28`、`include/ipc_log/fdbus_transport.h:22`、`src/server/log_server.cpp:126` | 同一套 `FDB_CONTEXT` 启停逻辑写了两遍；合并后保留“SDK `destroy()` 不重置 `mInstance`，销毁后不能重启”的标记 |
+| 2 | Sink 接口改为 `write(LogLevel, line)`，按等级选流，不再从格式化字符串反解等级 | `include/ipc_log/sink.h`、`src/sinks/console_sink.cpp`、`src/sinks/rotating_file_sink.cpp`、`src/server/log_aggregator.cpp` `outputReady`、`apps/log_server_main.cpp` `printCommandLine` | 原来靠字符串前缀判断 ERROR 走 stderr，属于隐式约定，格式一改就错 |
+| 3 | 抽出 `LogServer::resolveSession(process_instance, deadline)`；`getWorkerLevel` 改为本地扫描后只对目标会话发一次 GET，不再先查询全部 worker；`setWorkerLevel` 复用同一函数 | `src/server/log_server.cpp:609`、`:229`、`:274` | 两处重复的“扫描 + 发现 + 匹配”逻辑；get-level 原实现会对每个 worker 都发一次请求 |
+| 4 | 字段上限集中为 `kMaxModuleBytes` / `kMaxMessageBytes`，`LoggerConfig` 不再携带每实例上限；删除 `Logger` 构造校验、`LogAggregator::submit` 与 `FdbusLogTarget::submit` 的重复记录校验；保留服务端线上数据的 `validateRecord` | `include/ipc_log/log_record.h`、`include/ipc_log/logger.h`、`src/common/logger.cpp`、`src/server/log_server.cpp` `validateRecord` | 同一约束在三处重复且可配置漂移；信任边界只应保留在进程入口 |
+| 5 | `ILogTarget::shutdown` / `LogAggregator::shutdown` / `FdbusLogTarget::shutdown` 统一返回 `FlushResult`；应用入口删除显式 `flush` 后再 `shutdown` 的重复收尾 | `include/ipc_log/log_target.h:69-71`、`src/server/log_aggregator.cpp`、`src/client/fdbus_transport.cpp`、`apps/log_worker_main.cpp`、`apps/local_log_demo.cpp` | 与 F7 同一处问题，一次改完；退出码现在对应同一次收尾结果 |
 | 6 | 消息码集中为 `kLogRequestCode` / `kLevelControlCode`；删除未使用的 proto 回复枚举 `REPLY_DUPLICATE`、`REPLY_STOPPING`（枚举留空号） | `include/ipc_log/fdbus_transport.h:16-17`、`proto/log_protocol.proto` | 消息码原在两个 cpp 各写一遍；proto 中无人读取的枚举只会误导协议读者 |
 
 **F6 / F7 / F8 具体记录**
